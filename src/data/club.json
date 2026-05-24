@@ -1,0 +1,24 @@
+{
+  "nombre": "AFC Kravitt",
+  "nombreCorto": "Kravitt",
+  "frase": "Pasión. Garra. Identidad.",
+  "fundacion": 1931,
+  "escudoOriginal": "/logo/escudo-original.jpeg",
+  "escudoMoon": "/logo/escudo-moon.jpeg",
+  "colores": [
+    { "name": "Petróleo", "hex": "#0B2A2E" },
+    { "name": "Naranja Kravitt", "hex": "#ED7B2C" },
+    { "name": "Crema", "hex": "#F5F2E8" }
+  ],
+  "redes": {
+    "instagram": "",
+    "facebook": "",
+    "youtube": "",
+    "tiktok": ""
+  },
+  "contacto": {
+    "email": "",
+    "telefono": "",
+    "ubicacion": ""
+  }
+}

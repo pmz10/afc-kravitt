@@ -1,0 +1,17 @@
+[
+  {
+    "id": "est-2024-2025-fut7",
+    "temporada": "2024-2025",
+    "categoria": "Fut7",
+    "partidosJugados": 25,
+    "victorias": 13,
+    "empates": 1,
+    "derrotas": 11,
+    "golesFavor": 132,
+    "golesContra": 135,
+    "diferenciaGoles": -3,
+    "posicionFinal": 12,
+    "faseAlcanzada": "Octavos de Final",
+    "resumen": "Temporada de aprendizaje y construcción. 132 goles generados (12 por default), eliminados en octavos por posición en tabla."
+  }
+]

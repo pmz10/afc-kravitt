@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
+@theme {
+  /* ===== Paleta AFC Kravitt (extraída del escudo oficial) ===== */
+  --color-kravitt-night: #0b2a2e;       /* Verde petróleo profundo - fondo principal */
+  --color-kravitt-deep: #050e10;        /* Negro verdoso - gradientes y sombras */
+  --color-kravitt-petrol: #0f3438;      /* Verde petróleo medio - cards y elevación */
+  --color-kravitt-petrol-2: #134148;    /* Verde petróleo claro - hover */
+  --color-kravitt-orange: #ed7b2c;      /* Naranja Kravitt - acento principal */
+  --color-kravitt-orange-2: #f89b5a;    /* Naranja claro - hover/highlight */
+  --color-kravitt-orange-deep: #c75d18; /* Naranja oscuro - active */
+  --color-kravitt-cream: #f5f2e8;       /* Crema - texto principal sobre oscuro */
+  --color-kravitt-cream-2: #e8e3d2;     /* Crema apagado - texto secundario */
+  --color-kravitt-moon: #cfd2d0;        /* Gris perla - luna del escudo */
+  --color-kravitt-glow: #1a4549;        /* Verde glow - rings/borders sutiles */
+
+  /* ===== Tipografías ===== */
+  --font-display: var(--font-anton), "Impact", "Arial Narrow Bold", sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* ===== Sombras deportivas ===== */
+  --shadow-kravitt-orange: 0 10px 30px -10px rgba(237, 123, 44, 0.45);
+  --shadow-kravitt-deep: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+
+  /* ===== Animaciones ===== */
+  --ease-kravitt: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ===== Base ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background-color: var(--color-kravitt-night);
+  color: var(--color-kravitt-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(237, 123, 44, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 100%, rgba(15, 52, 56, 0.6), transparent 60%),
+    var(--color-kravitt-night);
+}
+
+/* ===== Selección ===== */
+::selection {
+  background-color: var(--color-kravitt-orange);
+  color: var(--color-kravitt-deep);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-kravitt-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-kravitt-petrol);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-kravitt-orange);
+}
+
+/* ===== Utilidades deportivas custom ===== */
+.text-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bg-mesh-kravitt {
+  background-image:
+    linear-gradient(135deg, rgba(237, 123, 44, 0.12) 0%, transparent 40%),
+    linear-gradient(225deg, rgba(15, 52, 56, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at center, rgba(237, 123, 44, 0.06), transparent 70%);
+}
+
+.divider-orange {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-kravitt-orange) 50%,
+    transparent 100%
+  );
+}
+
+/* ===== Animaciones reutilizables ===== */
+@keyframes kravitt-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kravitt-shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-fade-up {
+  animation: kravitt-fade-up 0.8s var(--ease-kravitt) both;
+}
+
+.text-shine {
+  background: linear-gradient(
+    90deg,
+    var(--color-kravitt-cream) 0%,
+    var(--color-kravitt-orange) 50%,
+    var(--color-kravitt-cream) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: kravitt-shine 4s linear infinite;
 }

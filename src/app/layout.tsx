@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s · AFC Kravitt",
   },
   description:
-    "Club de fútbol amateur AFC Kravitt. Estadísticas, plantel, partidos y comunidad. Construyendo identidad deportiva desde 2024.",
+    "Club de fútbol amateur AFC Kravitt. Estadísticas, plantel, partidos y comunidad. Construyendo identidad deportiva desde 2026.",
   keywords: [
     "AFC Kravitt",
     "Kravitt",
@@ -31,6 +31,14 @@ export const metadata: Metadata = {
     "plantel",
   ],
   authors: [{ name: "AFC Kravitt" }],
+  icons: {
+    icon: [
+      { url: "/favicon-kravitt.ico", type: "image/x-icon" },
+      { url: "/logo/escudo-kravitt.png", type: "image/png" },
+    ],
+    shortcut: "/favicon-kravitt.ico",
+    apple: "/logo/escudo-kravitt.png",
+  },
   openGraph: {
     title: "AFC Kravitt",
     description:

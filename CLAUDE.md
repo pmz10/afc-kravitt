@@ -4,7 +4,7 @@
 
 ## Contexto
 
-Sitio web del club de fútbol amateur **AFC Kravitt** (fundado 2024). Basado en `PRD_AFC_Kravitt.pdf` v1.0.
+Sitio web del club de fútbol amateur **AFC Kravitt** (fundado 2026). Basado en `PRD_AFC_Kravitt.pdf` v1.0.
 La identidad visual ya existe — escudo con luna creciente, paleta verde petróleo + naranja + crema.
 
 ## Stack

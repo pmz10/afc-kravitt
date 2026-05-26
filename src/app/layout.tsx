@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s · AFC Kravitt",
   },
   description:
-    "Club de fútbol amateur AFC Kravitt. Estadísticas, plantel, partidos y comunidad. Construyendo identidad deportiva desde 1931.",
+    "Club de fútbol amateur AFC Kravitt. Estadísticas, plantel, partidos y comunidad. Construyendo identidad deportiva desde 2024.",
   keywords: [
     "AFC Kravitt",
     "Kravitt",

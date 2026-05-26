@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { getClubConfig } from "@/lib/data";
+import { EscudoVariant } from "@/components/ui/EscudoVariant";
 
 export async function AboutClub() {
   const club = await getClubConfig();
@@ -8,17 +8,12 @@ export async function AboutClub() {
     <section className="relative py-24 sm:py-32 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <div className="relative">
-          <div className="relative aspect-square max-w-md mx-auto rounded-3xl overflow-hidden ring-1 ring-kravitt-petrol shadow-kravitt-deep">
-            <Image
-              src={club.escudoMoon}
-              alt="Escudo alternativo Kravitt"
-              fill
-              className="object-cover"
-              sizes="(min-width: 1024px) 480px, 90vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-kravitt-deep/70 via-transparent to-transparent" />
-          </div>
-          <div className="absolute -bottom-6 -left-6 hidden sm:flex h-24 w-24 items-center justify-center rounded-2xl bg-kravitt-orange text-kravitt-deep">
+          {/* Versión DORADA del escudo — sensación premium, "primordial" */}
+          <EscudoVariant
+            variant="gold"
+            className="aspect-square max-w-md mx-auto"
+          />
+          <div className="absolute -bottom-2 -left-2 sm:-bottom-6 sm:-left-6 hidden sm:flex h-24 w-24 items-center justify-center rounded-2xl bg-kravitt-orange text-kravitt-deep shadow-kravitt-orange">
             <span className="text-display text-3xl">{club.fundacion}</span>
           </div>
         </div>

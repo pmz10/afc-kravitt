@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getClubConfig } from "@/lib/data";
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
@@ -11,31 +12,35 @@ const NAV_LINKS = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-export function Navbar() {
+export async function Navbar() {
+  const club = await getClubConfig();
+
   return (
     <header className="fixed top-0 z-50 w-full backdrop-blur-md bg-kravitt-night/80 border-b border-kravitt-petrol">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8 h-16 lg:h-20">
         <Link
           href="/"
           className="flex items-center gap-3 group"
-          aria-label="AFC Kravitt - Inicio"
+          aria-label={`${club.nombre} - Inicio`}
         >
-          <div className="relative h-10 w-10 lg:h-12 lg:w-12 overflow-hidden rounded-lg ring-1 ring-kravitt-orange/40 group-hover:ring-kravitt-orange transition">
+          <div className="relative h-10 w-10 lg:h-12 lg:w-12 transition group-hover:scale-105">
             <Image
-              src="/logo/escudo-original.jpeg"
-              alt="Escudo AFC Kravitt"
+              src={club.escudoOriginal}
+              alt={`Escudo ${club.nombre}`}
               fill
-              className="object-cover"
+              className="object-contain drop-shadow-[0_2px_6px_rgba(237,123,44,0.35)]"
               sizes="48px"
               priority
+              loading="eager"
+              fetchPriority="high"
             />
           </div>
           <div className="hidden sm:flex flex-col leading-none">
             <span className="text-display text-xl lg:text-2xl text-kravitt-cream tracking-wider">
-              AFC Kravitt
+              {club.nombre}
             </span>
             <span className="text-[10px] uppercase tracking-[0.3em] text-kravitt-orange font-medium">
-              Est. 1931
+              Est. {club.fundacion}
             </span>
           </div>
         </Link>

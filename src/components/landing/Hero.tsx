@@ -74,21 +74,22 @@ export async function Hero() {
           </div>
         </div>
 
-        {/* Escudo gigante con glow */}
+        {/* Escudo gigante flotando con glow naranja */}
         <div className="lg:col-span-5 relative flex justify-center lg:justify-end animate-fade-up [animation-delay:200ms]">
           <div className="relative aspect-square w-[280px] sm:w-[380px] lg:w-[480px] xl:w-[560px]">
-            <div className="absolute inset-0 rounded-full bg-kravitt-orange/20 blur-3xl scale-90" />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kravitt-orange/15 to-kravitt-petrol/40 blur-2xl" />
-            <div className="relative h-full w-full rounded-3xl overflow-hidden ring-1 ring-kravitt-orange/30 shadow-kravitt-deep">
-              <Image
-                src={club.escudoOriginal}
-                alt={`Escudo ${club.nombre}`}
-                fill
-                className="object-cover"
-                sizes="(min-width: 1280px) 560px, (min-width: 1024px) 480px, (min-width: 640px) 380px, 280px"
-                priority
-              />
-            </div>
+            {/* Capas de glow detrás del escudo */}
+            <div className="absolute inset-0 rounded-full bg-kravitt-orange/25 blur-[100px] scale-90" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kravitt-orange/20 to-kravitt-petrol/30 blur-3xl" />
+            <div className="absolute inset-[15%] rounded-full bg-kravitt-orange/15 blur-2xl" />
+            {/* Escudo PNG transparente - flota libre */}
+            <Image
+              src={club.escudoOriginal}
+              alt={`Escudo ${club.nombre}`}
+              fill
+              className="object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.45)]"
+              sizes="(min-width: 1280px) 560px, (min-width: 1024px) 480px, (min-width: 640px) 380px, 280px"
+              priority
+            />
           </div>
         </div>
       </div>

@@ -11,12 +11,12 @@ export async function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-8 py-16 grid gap-12 lg:grid-cols-4">
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <div className="relative h-14 w-14 overflow-hidden rounded-lg ring-1 ring-kravitt-orange/40">
+            <div className="relative h-14 w-14">
               <Image
                 src={club.escudoOriginal}
                 alt={`Escudo ${club.nombre}`}
                 fill
-                className="object-cover"
+                className="object-contain drop-shadow-[0_2px_6px_rgba(237,123,44,0.35)]"
                 sizes="56px"
               />
             </div>

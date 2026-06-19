@@ -1,143 +1,288 @@
+
 import Link from "next/link";
-import { getEstadisticasTemporadaActual, getTopGoleadores } from "@/lib/data";
+
+import {
+  getEstadisticasTemporadaActual,
+  getTopGoleadores,
+} from "@/lib/data";
+
+import { StatsHighlightScroll } from "@/components/landing/StatsHighlightScroll";
 
 export async function StatsHighlight() {
-  const stats = await getEstadisticasTemporadaActual();
-  const goleadores = await getTopGoleadores(3);
+  const stats =
+    await getEstadisticasTemporadaActual();
+
+  const goleadores =
+    await getTopGoleadores(3);
 
   return (
-    <section className="relative py-24 sm:py-32 overflow-hidden">
-      <div className="absolute inset-0 -z-10 opacity-30 bg-mesh-kravitt" />
-      <div className="mx-auto max-w-7xl px-4 sm:px-8">
-        <div className="flex flex-col gap-3 items-start mb-12 lg:mb-16">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-12 bg-kravitt-orange" />
-            <span className="text-xs uppercase tracking-[0.4em] text-kravitt-orange">
-              Temporada {stats?.temporada ?? "—"}
+    <StatsHighlightScroll>
+      {/* Fondo mesh original */}
+      <div
+        data-stats-mesh
+        className="absolute inset-0 -z-20 bg-mesh-kravitt"
+        aria-hidden="true"
+      />
+
+      {/* Luces ambientales */}
+      <div
+        data-stats-glow
+        className="pointer-events-none absolute -left-52 top-1/4 -z-10 h-[38rem] w-[38rem] rounded-full bg-kravitt-orange/10 blur-[150px]"
+        aria-hidden="true"
+      />
+
+      <div
+        data-stats-glow
+        className="pointer-events-none absolute -right-56 bottom-0 -z-10 h-[42rem] w-[42rem] rounded-full bg-kravitt-petrol/35 blur-[160px]"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
+        {/* Encabezado */}
+        <div className="mb-8 flex flex-col items-start gap-3 lg:mb-10">
+          <div
+            data-stats-eyebrow
+            className="flex items-center gap-3 will-change-[transform,opacity]"
+          >
+            <span
+              data-stats-line
+              className="h-px w-12 origin-left bg-kravitt-orange will-change-transform"
+            />
+
+            <span className="text-[10px] uppercase tracking-[0.4em] text-kravitt-orange sm:text-xs">
+              Temporada{" "}
+              {stats?.temporada ?? "—"}
             </span>
           </div>
-          <h2 className="text-display text-4xl sm:text-5xl lg:text-6xl text-kravitt-cream leading-tight">
+
+          <h2
+            data-stats-heading
+            className="text-display text-3xl leading-tight text-kravitt-cream will-change-[transform,opacity] sm:text-5xl lg:text-6xl"
+          >
             Los números cuentan la historia.
           </h2>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-6 lg:gap-8">
-          {/* Cards de stats */}
-          <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <StatCard label="Posición final" value={stats?.posicionFinal ?? "—"} sufijo="°" />
-            <StatCard label="Victorias" value={stats?.victorias ?? 0} accent />
-            <StatCard label="Empates" value={stats?.empates ?? 0} />
-            <StatCard label="Derrotas" value={stats?.derrotas ?? 0} />
-            <StatCard label="Goles a favor" value={stats?.golesFavor ?? 0} accent />
-            <StatCard label="Goles en contra" value={stats?.golesContra ?? 0} />
+        <div className="grid gap-5 lg:grid-cols-5 lg:gap-8">
+          {/* Tarjetas de estadísticas */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:col-span-3">
+            <StatCard
+              label="Posición final"
+              value={
+                stats?.posicionFinal ?? "—"
+              }
+              sufijo="°"
+            />
+
+            <StatCard
+              label="Victorias"
+              value={
+                stats?.victorias ?? 0
+              }
+              accent
+            />
+
+            <StatCard
+              label="Empates"
+              value={
+                stats?.empates ?? 0
+              }
+            />
+
+            <StatCard
+              label="Derrotas"
+              value={
+                stats?.derrotas ?? 0
+              }
+            />
+
+            <StatCard
+              label="Goles a favor"
+              value={
+                stats?.golesFavor ?? 0
+              }
+              accent
+            />
+
+            <StatCard
+              label="Goles en contra"
+              value={
+                stats?.golesContra ?? 0
+              }
+            />
+
             <StatCard
               label="Diferencia"
               value={
                 stats
-                  ? `${stats.diferenciaGoles > 0 ? "+" : ""}${stats.diferenciaGoles}`
+                  ? `${
+                      stats.diferenciaGoles >
+                      0
+                        ? "+"
+                        : ""
+                    }${
+                      stats.diferenciaGoles
+                    }`
                   : 0
               }
-              accent={(stats?.diferenciaGoles ?? 0) >= 0}
+              accent={
+                (
+                  stats?.diferenciaGoles ??
+                  0
+                ) >= 0
+              }
             />
+
             <StatCard
               label="Partidos"
-              value={stats?.partidosJugados ?? 0}
+              value={
+                stats?.partidosJugados ??
+                0
+              }
             />
+
             <StatCard
               label="Fase final"
-              value={stats?.faseAlcanzada ?? "—"}
+              value={
+                stats?.faseAlcanzada ??
+                "—"
+              }
               small
             />
           </div>
 
           {/* Top goleadores */}
-          <div className="lg:col-span-2 rounded-3xl bg-kravitt-petrol/30 border border-kravitt-petrol p-6 sm:p-8 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.3em] text-kravitt-orange">
+          <div
+            data-scorers-card
+            className="flex flex-col gap-4 rounded-3xl border border-kravitt-petrol bg-kravitt-petrol/30 p-5 backdrop-blur-sm will-change-[transform,opacity] sm:p-8 lg:col-span-2"
+          >
+            <div
+              data-scorers-header
+              className="flex items-center justify-between gap-4 will-change-[transform,opacity]"
+            >
+              <span className="text-[10px] uppercase tracking-[0.3em] text-kravitt-orange sm:text-xs">
                 Top goleadores
               </span>
+
               <Link
                 href="/estadisticas"
-                className="text-xs text-kravitt-cream/60 hover:text-kravitt-orange"
+                className="text-[10px] text-kravitt-cream/60 transition hover:text-kravitt-orange sm:text-xs"
               >
                 Ver tabla completa →
               </Link>
             </div>
+
             <ol className="flex flex-col gap-3">
               {goleadores.length === 0 ? (
-                <li className="text-sm text-kravitt-cream/50 py-4 text-center">
+                <li
+                  data-scorer-item
+                  className="py-4 text-center text-sm text-kravitt-cream/50 will-change-[transform,opacity]"
+                >
                   Sin datos de goleadores aún.
                 </li>
               ) : (
-                goleadores.map((j, i) => (
-                  <li
-                    key={j.id}
-                    className="flex items-center gap-4 rounded-2xl bg-kravitt-deep/70 px-4 py-3"
-                  >
-                    <span className="text-display text-3xl text-kravitt-orange w-8 text-center">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base text-kravitt-cream truncate">
-                        {j.nombre} {j.apellido}
-                      </p>
-                      <p className="text-[10px] uppercase tracking-widest text-kravitt-cream/40">
-                        #{j.dorsal} · {j.posicion}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end leading-tight">
-                      <span className="text-display text-2xl text-kravitt-cream">
-                        {j.goles}
+                goleadores.map(
+                  (jugador, index) => (
+                    <li
+                      key={jugador.id}
+                      data-scorer-item
+                      className="flex items-center gap-3 rounded-2xl bg-kravitt-deep/70 px-3 py-3 will-change-[transform,opacity] sm:gap-4 sm:px-4"
+                    >
+                      <span
+                        data-scorer-rank
+                        className="w-7 shrink-0 text-center text-display text-2xl text-kravitt-orange will-change-[transform,opacity] sm:w-8 sm:text-3xl"
+                      >
+                        {index + 1}
                       </span>
-                      <span className="text-[10px] uppercase tracking-widest text-kravitt-cream/40">
-                        Goles
-                      </span>
-                    </div>
-                  </li>
-                ))
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-kravitt-cream sm:text-base">
+                          {jugador.nombre}{" "}
+                          {jugador.apellido}
+                        </p>
+
+                        <p className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
+                          #{jugador.dorsal}
+                          {" · "}
+                          {jugador.posicion}
+                        </p>
+                      </div>
+
+                      <div
+                        data-scorer-goals
+                        className="flex shrink-0 flex-col items-end leading-tight will-change-[transform,opacity]"
+                      >
+                        <span className="text-display text-xl text-kravitt-cream sm:text-2xl">
+                          {jugador.goles}
+                        </span>
+
+                        <span className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
+                          Goles
+                        </span>
+                      </div>
+                    </li>
+                  ),
+                )
               )}
             </ol>
           </div>
         </div>
 
         {stats?.resumen && (
-          <p className="mt-10 max-w-3xl text-kravitt-cream/65 leading-relaxed">
+          <p
+            data-stats-summary
+            className="mt-7 max-w-3xl text-sm leading-relaxed text-kravitt-cream/65 will-change-[transform,opacity] sm:mt-10 sm:text-base"
+          >
             {stats.resumen}
           </p>
         )}
       </div>
-    </section>
+    </StatsHighlightScroll>
   );
+}
+
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  sufijo?: string;
+  accent?: boolean;
+  small?: boolean;
 }
 
 function StatCard({
   label,
   value,
   sufijo,
-  accent,
-  small,
-}: {
-  label: string;
-  value: number | string;
-  sufijo?: string;
-  accent?: boolean;
-  small?: boolean;
-}) {
+  accent = false,
+  small = false,
+}: StatCardProps) {
   return (
     <div
-      className={`rounded-2xl border p-5 sm:p-6 flex flex-col justify-between min-h-[120px] ${
+      data-stat-card
+      className={`flex min-h-[96px] flex-col justify-between rounded-2xl border p-4 will-change-[transform,opacity] sm:min-h-[120px] sm:p-6 ${
         accent
-          ? "bg-kravitt-orange/10 border-kravitt-orange/40"
-          : "bg-kravitt-petrol/40 border-kravitt-petrol"
+          ? "border-kravitt-orange/40 bg-kravitt-orange/10"
+          : "border-kravitt-petrol bg-kravitt-petrol/40"
       }`}
     >
-      <p className="text-xs uppercase tracking-widest text-kravitt-cream/60">
+      <p
+        data-stat-label
+        className="text-[9px] uppercase tracking-widest text-kravitt-cream/60 will-change-[transform,opacity] sm:text-xs"
+      >
         {label}
       </p>
+
       <p
-        className={`text-display ${
-          small ? "text-xl" : "text-4xl sm:text-5xl"
-        } ${accent ? "text-kravitt-orange" : "text-kravitt-cream"}`}
+        data-stat-value
+        className={`text-display leading-none will-change-[transform,opacity] ${
+          small
+            ? "text-base sm:text-xl"
+            : "text-3xl sm:text-5xl"
+        } ${
+          accent
+            ? "text-kravitt-orange"
+            : "text-kravitt-cream"
+        }`}
       >
         {value}
         {sufijo}
@@ -145,3 +290,4 @@ function StatCard({
     </div>
   );
 }
+

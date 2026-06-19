@@ -118,6 +118,7 @@ export interface Partido {
   convocados: string[];      // ids de nuestros jugadores
   eventos: EventoPartido[];
   notas?: string;
+  mvpId?: string;
 }
 
 // -----------------------------------------------------
@@ -139,6 +140,32 @@ export interface StatsCarryOver {
   rojas: number;
 }
 
+// -----------------------------------------------------
+// Hitos / logros del jugador
+// -----------------------------------------------------
+export type TipoHito =
+  | "campeon"
+  | "subcampeon"
+  | "max_goleador_torneo"
+  | "max_asistente_torneo"
+  | "mvp_torneo"
+  | "mvp_partido"
+  | "hat_trick"
+  | "milestone_partidos"
+  | "milestone_goles"
+  | "capitan_temporada"
+  | "otro";
+
+export interface Hito {
+  id: string;
+  tipo: TipoHito;
+  titulo: string;
+  fecha?: string;
+  torneoId?: string;
+  notas?: string;
+}
+
+
 export interface Jugador {
   id: string;
   nombre: string;
@@ -155,6 +182,9 @@ export interface Jugador {
   historial: PeriodoEnClub[];
   activo: boolean;
   carryOver?: StatsCarryOver;
+  esLeyenda?: boolean;
+  email?: string;       // ← nuevo (para login futuro de votación)
+  hitos?: Hito[];       // ← nuevo (gestionado desde la ficha)
 }
 
 // -----------------------------------------------------

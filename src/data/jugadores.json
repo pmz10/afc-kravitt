@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "j_mqlp9gezeutemz",
+    "nombre": "Gerardo",
+    "apellido": "García",
+    "apodo": "Pamperzy",
+    "dorsal": 79,
+    "posicion": "MED",
+    "posicionesSecundarias": [
+      "DEL"
+    ],
+    "pieDominante": "izq",
+    "bio": "Pionero del equipo, solo espera.",
+    "fechaNacimiento": "1995-06-10",
+    "capitan": true,
+    "historial": [
+      {
+        "id": "per_mqlp9gezwdej98",
+        "desde": "2024-05-08",
+        "notas": "Creador"
+      }
+    ],
+    "activo": true,
+    "esLeyenda": true
+  }
+]

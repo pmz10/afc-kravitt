@@ -21,6 +21,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     <Link href="/admin/jugadores" className="px-3 py-2 rounded-lg hover:bg-neutral-900">
                         Jugadores
                     </Link>
+                    <Link href="/admin/rivales" className="px-3 py-2 rounded-lg hover:bg-neutral-900">
+                        Rivales
+                    </Link>
+                    <Link href="/admin/torneos" className="px-3 py-2 rounded-lg hover:bg-neutral-900">
+                        Torneos
+                    </Link>
                     {/* Partidos, estadísticas, club… más adelante */}
                 </nav>
                 <form action={logoutAction} className="mt-auto">

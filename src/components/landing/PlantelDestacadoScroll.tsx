@@ -376,6 +376,7 @@ export function PlantelDestacadoScroll({
     }
 
     let animationFrame: number | null = null;
+    let isNear = false;
 
     let animationStart = 0;
     let animationDistance = 1;
@@ -431,6 +432,10 @@ export function PlantelDestacadoScroll({
     };
 
     const requestTimelineUpdate = () => {
+      if (!isNear) {
+        return;
+      }
+
       if (animationFrame !== null) {
         return;
       }
@@ -441,12 +446,30 @@ export function PlantelDestacadoScroll({
         );
     };
 
+    /*
+     * Observer de proximidad: el scroll listener corre, pero la
+     * callback retorna early si la sección no está cerca del viewport.
+     */
+    const proximityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isNear = entry.isIntersecting;
+        if (isNear) {
+          requestTimelineUpdate();
+        }
+      },
+      {
+        rootMargin: "150% 0px 150% 0px",
+      },
+    );
+    proximityObserver.observe(section);
+
     const handleResize = () => {
       measureSection();
       requestTimelineUpdate();
     };
 
     measureSection();
+    isNear = true;
     updateTimeline();
 
     window.addEventListener(
@@ -472,6 +495,8 @@ export function PlantelDestacadoScroll({
         "resize",
         handleResize,
       );
+
+      proximityObserver.disconnect();
 
       if (animationFrame !== null) {
         window.cancelAnimationFrame(
@@ -502,7 +527,7 @@ export function PlantelDestacadoScroll({
     <section
       ref={sectionRef}
       id="plantel-destacado"
-      className={`relative -mt-px h-[260vh] sm:h-[240vh] ${className}`}
+      className={`relative -mt-px h-[190vh] sm:h-[170vh] ${className}`}
     >
       <div
         ref={stageRef}

@@ -9,6 +9,7 @@ import {
     getJugador,
     upsertJugador,
 } from "@/lib/data";
+import type { Hito, TipoHito, CarryOverPorTorneo } from "@/types";
 import { requireAuth } from "@/lib/auth";
 import { generateId, estaActivoEn, nowISO } from "@/lib/utils";
 import type {
@@ -22,6 +23,19 @@ import type {
 const MAX_FOTO_BYTES = 2 * 1024 * 1024;
 const TIPOS_FOTO_VALIDOS = ["image/jpeg", "image/png", "image/webp"];
 const POSICIONES: Posicion[] = ["POR", "DEF", "MED", "DEL"];
+const TIPOS_HITO: TipoHito[] = [
+    "campeon",
+    "subcampeon",
+    "max_goleador_torneo",
+    "max_asistente_torneo",
+    "mvp_torneo",
+    "mvp_partido",
+    "hat_trick",
+    "milestone_partidos",
+    "milestone_goles",
+    "capitan_temporada",
+    "otro",
+];
 
 // -------- Helpers --------
 function readPosicion(value: FormDataEntryValue | null): Posicion | null {
@@ -43,6 +57,12 @@ function readStr(formData: FormData, key: string): string | undefined {
     const trimmed = v.trim();
     return trimmed.length ? trimmed : undefined;
 }
+function readTipoHito(v: FormDataEntryValue | null): TipoHito | null {
+    return typeof v === "string" && TIPOS_HITO.includes(v as TipoHito)
+        ? (v as TipoHito)
+        : null;
+}
+
 
 async function guardarFoto(file: File, jugadorId: string): Promise<string> {
     const ext =
@@ -322,4 +342,94 @@ export async function eliminarJugador(formData: FormData) {
     await deleteJugador(id);
     revalidatePath("/admin/jugadores");
     redirect("/admin/jugadores");
+}
+// -------- agregarHito --------
+export async function agregarHito(formData: FormData) {
+    await requireAuth();
+    const jugadorId = readStr(formData, "jugadorId");
+    const tipo = readTipoHito(formData.get("tipo"));
+    const titulo = readStr(formData, "titulo");
+    if (!jugadorId || !tipo || !titulo) {
+        redirect(`/admin/jugadores/${jugadorId ?? ""}?error=hito`);
+    }
+
+    const jugador = await getJugador(jugadorId);
+    if (!jugador) redirect("/admin/jugadores");
+
+    const hito: Hito = {
+        id: generateId("h"),
+        tipo,
+        titulo,
+        fecha: readStr(formData, "fecha"),
+        torneoId: readStr(formData, "torneoId"),
+        notas: readStr(formData, "notas"),
+    };
+
+    jugador.hitos = [...(jugador.hitos ?? []), hito];
+    await upsertJugador(jugador);
+    revalidatePath(`/admin/jugadores/${jugadorId}`);
+    redirect(`/admin/jugadores/${jugadorId}`);
+}
+
+// -------- eliminarHito --------
+export async function eliminarHito(formData: FormData) {
+    await requireAuth();
+    const jugadorId = readStr(formData, "jugadorId");
+    const hitoId = readStr(formData, "hitoId");
+    if (!jugadorId || !hitoId) redirect("/admin/jugadores");
+
+    const jugador = await getJugador(jugadorId);
+    if (!jugador) redirect("/admin/jugadores");
+
+    jugador.hitos = (jugador.hitos ?? []).filter((h) => h.id !== hitoId);
+    await upsertJugador(jugador);
+    revalidatePath(`/admin/jugadores/${jugadorId}`);
+    redirect(`/admin/jugadores/${jugadorId}`);
+}
+
+// -------- agregarCarryOverTorneo --------
+export async function agregarCarryOverTorneo(formData: FormData) {
+    await requireAuth();
+    const jugadorId = readStr(formData, "jugadorId");
+    const torneoId = readStr(formData, "torneoId");
+    if (!jugadorId || !torneoId) redirect("/admin/jugadores");
+
+    const jugador = await getJugador(jugadorId);
+    if (!jugador) redirect("/admin/jugadores");
+
+    const co: CarryOverPorTorneo = {
+        torneoId,
+        partidosJugados: readInt(formData.get("co_pj")) ?? 0,
+        goles: readInt(formData.get("co_goles")) ?? 0,
+        asistencias: readInt(formData.get("co_asistencias")) ?? 0,
+        amarillas: readInt(formData.get("co_amarillas")) ?? 0,
+        rojas: readInt(formData.get("co_rojas")) ?? 0,
+    };
+
+    const otros = (jugador.carryOverPorTorneo ?? []).filter(
+        (c) => c.torneoId !== torneoId,
+    );
+    jugador.carryOverPorTorneo = [...otros, co];
+
+    await upsertJugador(jugador);
+    revalidatePath(`/admin/jugadores/${jugadorId}`);
+    redirect(`/admin/jugadores/${jugadorId}`);
+}
+
+// -------- eliminarCarryOverTorneo --------
+export async function eliminarCarryOverTorneo(formData: FormData) {
+    await requireAuth();
+    const jugadorId = readStr(formData, "jugadorId");
+    const torneoId = readStr(formData, "torneoId");
+    if (!jugadorId || !torneoId) redirect("/admin/jugadores");
+
+    const jugador = await getJugador(jugadorId);
+    if (!jugador) redirect("/admin/jugadores");
+
+    jugador.carryOverPorTorneo = (jugador.carryOverPorTorneo ?? []).filter(
+        (c) => c.torneoId !== torneoId,
+    );
+    await upsertJugador(jugador);
+    revalidatePath(`/admin/jugadores/${jugadorId}`);
+    redirect(`/admin/jugadores/${jugadorId}`);
 }

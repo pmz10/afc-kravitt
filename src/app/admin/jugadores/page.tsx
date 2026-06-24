@@ -192,12 +192,20 @@ export default async function JugadoresPage({
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Link
-                                            href={`/admin/jugadores/${j.id}/editar`}
-                                            className="text-orange-400 hover:text-orange-300 text-sm"
-                                        >
-                                            Editar
-                                        </Link>
+                                        <div className="flex justify-end gap-3">
+                                            <Link
+                                                href={`/admin/jugadores/${j.id}`}
+                                                className="text-neutral-400 hover:text-neutral-100 text-sm"
+                                            >
+                                                Ver
+                                            </Link>
+                                            <Link
+                                                href={`/admin/jugadores/${j.id}/editar`}
+                                                className="text-orange-400 hover:text-orange-300 text-sm"
+                                            >
+                                                Editar
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -222,8 +230,8 @@ function Tab({
         <Link
             href={href}
             className={`px-4 py-2 text-sm border-b-2 -mb-px transition ${activo
-                    ? "border-orange-500 text-neutral-100"
-                    : "border-transparent text-neutral-500 hover:text-neutral-300"
+                ? "border-orange-500 text-neutral-100"
+                : "border-transparent text-neutral-500 hover:text-neutral-300"
                 }`}
         >
             {children}

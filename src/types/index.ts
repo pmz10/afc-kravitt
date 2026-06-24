@@ -139,6 +139,10 @@ export interface StatsCarryOver {
   amarillas: number;
   rojas: number;
 }
+// Carry-over con desglose por torneo (cuando se tiene el detalle)
+export interface CarryOverPorTorneo extends StatsCarryOver {
+  torneoId: string;
+}
 
 // -----------------------------------------------------
 // Hitos / logros del jugador
@@ -182,9 +186,10 @@ export interface Jugador {
   historial: PeriodoEnClub[];
   activo: boolean;
   carryOver?: StatsCarryOver;
+  carryOverPorTorneo?: CarryOverPorTorneo[]; // ← nuevo (gestionado desde la ficha)
   esLeyenda?: boolean;
   email?: string;       // ← nuevo (para login futuro de votación)
-  hitos?: Hito[];       // ← nuevo (gestionado desde la ficha)
+  hitos?: Hito[];
 }
 
 // -----------------------------------------------------

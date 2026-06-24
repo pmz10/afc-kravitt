@@ -37,7 +37,7 @@ export default async function RivalesPage() {
                     {rivales.map((r) => (
                         <Link
                             key={r.id}
-                            href={`/admin/rivales/${r.id}/editar`}
+                            href={`/admin/rivales/${r.id}`}
                             className="flex items-center gap-3 p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900 hover:border-orange-500/30 transition"
                         >
                             {r.escudo ? (

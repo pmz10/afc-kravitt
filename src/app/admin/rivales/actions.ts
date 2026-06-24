@@ -4,10 +4,16 @@ import { promises as fs } from "fs";
 import path from "path";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { deleteRival, getRival, upsertRival } from "@/lib/data";
+import {
+    deleteJugadorRival,
+    deleteRival,
+    getRival,
+    upsertJugadorRival,
+    upsertRival,
+} from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import { generateId } from "@/lib/utils";
-import type { Rival } from "@/types";
+import type { JugadorRival, Posicion, Rival } from "@/types";
 
 const MAX_ESCUDO_BYTES = 2 * 1024 * 1024;
 const TIPOS_ESCUDO_VALIDOS = ["image/jpeg", "image/png", "image/webp"];
@@ -131,4 +137,64 @@ export async function eliminarRival(formData: FormData) {
     await deleteRival(id);
     revalidatePath("/admin/rivales");
     redirect("/admin/rivales");
+}
+
+// =====================================================
+// JugadorRival (scouting)
+// =====================================================
+
+const POSICIONES_RIVAL: Posicion[] = ["POR", "DEF", "MED", "DEL"];
+
+function readPosicionRival(v: FormDataEntryValue | null): Posicion | undefined {
+    if (typeof v !== "string") return undefined;
+    return POSICIONES_RIVAL.includes(v as Posicion)
+        ? (v as Posicion)
+        : undefined;
+}
+
+function readIntOpt(value: FormDataEntryValue | null): number | undefined {
+    if (typeof value !== "string" || value === "") return undefined;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+// -------- agregarJugadorRival --------
+export async function agregarJugadorRival(formData: FormData) {
+    await requireAuth();
+    const rivalId = readStr(formData, "rivalId");
+    if (!rivalId) redirect("/admin/rivales");
+
+    const dorsal = readIntOpt(formData.get("dorsal"));
+    const nombre = readStr(formData, "nombre");
+    const apodo = readStr(formData, "apodo");
+
+    if (dorsal === undefined && !nombre && !apodo) {
+        redirect(`/admin/rivales/${rivalId}?error=identidad`);
+    }
+
+    const jr: JugadorRival = {
+        id: generateId("jr"),
+        rivalId,
+        dorsal,
+        nombre,
+        apodo,
+        posicion: readPosicionRival(formData.get("posicion")),
+        notas: readStr(formData, "notas"),
+    };
+
+    await upsertJugadorRival(jr);
+    revalidatePath(`/admin/rivales/${rivalId}`);
+    redirect(`/admin/rivales/${rivalId}`);
+}
+
+// -------- eliminarJugadorRival --------
+export async function eliminarJugadorRival(formData: FormData) {
+    await requireAuth();
+    const rivalId = readStr(formData, "rivalId");
+    const id = readStr(formData, "id");
+    if (!rivalId || !id) redirect("/admin/rivales");
+
+    await deleteJugadorRival(id);
+    revalidatePath(`/admin/rivales/${rivalId}`);
+    redirect(`/admin/rivales/${rivalId}`);
 }

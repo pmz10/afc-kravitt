@@ -36,12 +36,20 @@ export default async function EditarRivalPage({
                         <p className="text-sm text-neutral-400">{rival.ciudad}</p>
                     )}
                 </div>
-                <Link
-                    href="/admin/rivales"
-                    className="text-sm text-neutral-400 hover:text-neutral-100"
-                >
-                    ← Volver
-                </Link>
+                <div className="flex flex-col gap-2 text-sm items-end">
+                    <Link
+                        href={`/admin/rivales/${rival.id}`}
+                        className="text-orange-400 hover:text-orange-300"
+                    >
+                        Ver ficha →
+                    </Link>
+                    <Link
+                        href="/admin/rivales"
+                        className="text-neutral-400 hover:text-neutral-100"
+                    >
+                        ← Volver al listado
+                    </Link>
+                </div>
             </header>
 
             {mensajeError && (

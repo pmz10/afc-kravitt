@@ -142,13 +142,7 @@ export async function ProximoPartido() {
               </span>
 
               <span className="text-xs uppercase tracking-widest text-kravitt-cream/50">
-<<<<<<< HEAD
-                {proximo
-                  ? proximo.categoria
-                  : "—"}
-=======
                 {proximo ? categoriaTorneo(proximo.torneoId) : "—"}
->>>>>>> origin/main
               </span>
             </div>
 
@@ -179,13 +173,7 @@ export async function ProximoPartido() {
                     </p>
 
                     <p className="text-[10px] uppercase tracking-widest text-kravitt-cream/60 sm:text-xs">
-<<<<<<< HEAD
-                      {proximo.esLocal
-                        ? "Local"
-                        : "Visitante"}
-=======
                       {proximo.esLocal ? "Local" : "Visitante"}
->>>>>>> origin/main
                     </p>
                   </div>
 
@@ -195,21 +183,11 @@ export async function ProximoPartido() {
                     className="flex flex-col items-center gap-2 will-change-[transform,opacity]"
                   >
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-kravitt-petrol-2/60 text-display text-lg text-kravitt-cream ring-1 ring-kravitt-cream/10 sm:h-24 sm:w-24 sm:text-3xl lg:h-28 lg:w-28">
-<<<<<<< HEAD
-                      {proximo.rival
-                        .slice(0, 3)
-                        .toUpperCase()}
-                    </div>
-
-                    <p className="text-center text-display text-sm text-kravitt-cream sm:text-xl">
-                      {proximo.rival}
-=======
                       {nombreRival(proximo.rivalId).slice(0, 3).toUpperCase()}
                     </div>
 
                     <p className="text-center text-display text-sm text-kravitt-cream sm:text-xl">
                       {nombreRival(proximo.rivalId)}
->>>>>>> origin/main
                     </p>
                   </div>
                 </div>
@@ -225,13 +203,7 @@ export async function ProximoPartido() {
                     </p>
 
                     <p className="text-sm capitalize text-kravitt-cream sm:text-base">
-<<<<<<< HEAD
-                      {formatFecha(
-                        proximo.fecha,
-                      )}
-=======
                       {formatFecha(proximo.fecha)}
->>>>>>> origin/main
                     </p>
                   </div>
 
@@ -241,13 +213,7 @@ export async function ProximoPartido() {
                     </p>
 
                     <p className="text-sm text-kravitt-cream sm:text-base">
-<<<<<<< HEAD
-                      {formatHora(
-                        proximo.fecha,
-                      )}
-=======
                       {formatHora(proximo.fecha)}
->>>>>>> origin/main
                     </p>
                   </div>
 
@@ -257,13 +223,7 @@ export async function ProximoPartido() {
                     </p>
 
                     <p className="text-sm text-kravitt-cream sm:text-base">
-<<<<<<< HEAD
-                      #
-                      {proximo.jornada ??
-                        "—"}
-=======
                       #{proximo.jornada ?? "—"}
->>>>>>> origin/main
                     </p>
                   </div>
                 </div>
@@ -278,15 +238,8 @@ export async function ProximoPartido() {
                 </p>
 
                 <p className="mb-6 text-sm text-kravitt-cream/50">
-<<<<<<< HEAD
-                  La temporada 24-25 ha
-                  concluido. Próximamente
-                  arranque de la nueva
-                  temporada.
-=======
                   La temporada anterior ha concluido. Próximamente arranque de
                   la nueva temporada.
->>>>>>> origin/main
                 </p>
 
                 <Link
@@ -323,13 +276,7 @@ export async function ProximoPartido() {
             <ul className="flex flex-col gap-2">
               {ultimos.map((partido) => {
                 const resultado =
-<<<<<<< HEAD
-                  RESULTADO_LABEL[
-                    partido.resultado
-                  ] ??
-=======
                   RESULTADO_LABEL[partido.resultado] ??
->>>>>>> origin/main
                   RESULTADO_LABEL.perdido;
 
                 return (
@@ -346,23 +293,13 @@ export async function ProximoPartido() {
 
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm text-kravitt-cream">
-<<<<<<< HEAD
-                        {partido.rival}
-=======
                         {nombreRival(partido.rivalId)}
->>>>>>> origin/main
                       </p>
 
                       <p className="text-[10px] uppercase tracking-widest text-kravitt-cream/40">
                         J{partido.jornada}
                         {" · "}
-<<<<<<< HEAD
-                        {partido.esLocal
-                          ? "Local"
-                          : "Visita"}
-=======
                         {partido.esLocal ? "Local" : "Visita"}
->>>>>>> origin/main
                       </p>
                     </div>
                   </li>

@@ -111,12 +111,7 @@ export async function StatsHighlight() {
             />
 
             <span className="text-[10px] uppercase tracking-[0.4em] text-kravitt-orange sm:text-xs">
-<<<<<<< HEAD
-              Temporada{" "}
-              {stats?.temporada ?? "—"}
-=======
               Temporada {stats?.temporada ?? "—"}
->>>>>>> origin/main
             </span>
           </div>
 
@@ -133,45 +128,12 @@ export async function StatsHighlight() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:col-span-3">
             <StatCard
               label="Posición final"
-<<<<<<< HEAD
-              value={
-                stats?.posicionFinal ?? "—"
-              }
-=======
               value={stats?.posicionFinal ?? "—"}
->>>>>>> origin/main
               sufijo="°"
             />
 
             <StatCard
               label="Victorias"
-<<<<<<< HEAD
-              value={
-                stats?.victorias ?? 0
-              }
-              accent
-            />
-
-            <StatCard
-              label="Empates"
-              value={
-                stats?.empates ?? 0
-              }
-            />
-
-            <StatCard
-              label="Derrotas"
-              value={
-                stats?.derrotas ?? 0
-              }
-            />
-
-            <StatCard
-              label="Goles a favor"
-              value={
-                stats?.golesFavor ?? 0
-              }
-=======
               value={stats?.victorias ?? 0}
               accent
             />
@@ -183,19 +145,12 @@ export async function StatsHighlight() {
             <StatCard
               label="Goles a favor"
               value={stats?.golesFavor ?? 0}
->>>>>>> origin/main
               accent
             />
 
             <StatCard
               label="Goles en contra"
-<<<<<<< HEAD
-              value={
-                stats?.golesContra ?? 0
-              }
-=======
               value={stats?.golesContra ?? 0}
->>>>>>> origin/main
             />
 
             <StatCard
@@ -268,50 +223,6 @@ export async function StatsHighlight() {
                   Sin datos de goleadores aún.
                 </li>
               ) : (
-<<<<<<< HEAD
-                goleadores.map(
-                  (jugador, index) => (
-                    <li
-                      key={jugador.id}
-                      data-scorer-item
-                      className="flex items-center gap-3 rounded-2xl bg-kravitt-deep/70 px-3 py-3 will-change-[transform,opacity] sm:gap-4 sm:px-4"
-                    >
-                      <span
-                        data-scorer-rank
-                        className="w-7 shrink-0 text-center text-display text-2xl text-kravitt-orange will-change-[transform,opacity] sm:w-8 sm:text-3xl"
-                      >
-                        {index + 1}
-                      </span>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-kravitt-cream sm:text-base">
-                          {jugador.nombre}{" "}
-                          {jugador.apellido}
-                        </p>
-
-                        <p className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
-                          #{jugador.dorsal}
-                          {" · "}
-                          {jugador.posicion}
-                        </p>
-                      </div>
-
-                      <div
-                        data-scorer-goals
-                        className="flex shrink-0 flex-col items-end leading-tight will-change-[transform,opacity]"
-                      >
-                        <span className="text-display text-xl text-kravitt-cream sm:text-2xl">
-                          {jugador.goles}
-                        </span>
-
-                        <span className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
-                          Goles
-                        </span>
-                      </div>
-                    </li>
-                  ),
-                )
-=======
                 goleadores.map((jugador, index) => (
                   <li
                     key={jugador.id}
@@ -351,7 +262,6 @@ export async function StatsHighlight() {
                     </div>
                   </li>
                 ))
->>>>>>> origin/main
               )}
             </ol>
           </div>
@@ -404,19 +314,8 @@ function StatCard({
       <p
         data-stat-value
         className={`text-display leading-none will-change-[transform,opacity] ${
-<<<<<<< HEAD
-          small
-            ? "text-base sm:text-xl"
-            : "text-3xl sm:text-5xl"
-        } ${
-          accent
-            ? "text-kravitt-orange"
-            : "text-kravitt-cream"
-        }`}
-=======
           small ? "text-base sm:text-xl" : "text-3xl sm:text-5xl"
         } ${accent ? "text-kravitt-orange" : "text-kravitt-cream"}`}
->>>>>>> origin/main
       >
         {value}
         {sufijo}

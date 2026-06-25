@@ -7,6 +7,7 @@ import {
   claimPlayerInviteSubmission,
   completePlayerInviteSubmission,
   createPlayerInvite,
+  deletePlayerInvite,
   rejectPlayerInviteSubmission,
   releasePlayerInviteSubmission,
   revokePlayerInvite,
@@ -231,4 +232,23 @@ export async function revocarEnlaceJugador(formData: FormData) {
   if (id) await revokePlayerInvite(id);
   revalidatePath("/admin/jugadores/enlaces");
   redirect("/admin/jugadores/enlaces");
+}
+
+export async function eliminarEnlaceJugador(formData: FormData) {
+  await requireAuth();
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/admin/jugadores/enlaces");
+
+  try {
+    await deletePlayerInvite(id);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "No se pudo eliminar el enlace";
+    redirect(
+      `/admin/jugadores/enlaces?deleteError=${encodeURIComponent(message)}`,
+    );
+  }
+
+  revalidatePath("/admin/jugadores/enlaces");
+  redirect("/admin/jugadores/enlaces?deleted=1");
 }

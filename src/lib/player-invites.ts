@@ -14,6 +14,7 @@ export type PlayerInvite = {
   createdAt: string;
   lastUsedAt?: string;
   requiresApproval: boolean;
+  token?: string;
 };
 
 export type PlayerInviteSubmissionStatus =
@@ -67,6 +68,7 @@ type InviteRow = {
   created_at: string;
   last_used_at: string | null;
   requires_approval: boolean;
+  token_value: string | null;
 };
 
 type SubmissionRow = {
@@ -94,6 +96,7 @@ function mapInvite(row: InviteRow): PlayerInvite {
     createdAt: row.created_at,
     lastUsedAt: row.last_used_at ?? undefined,
     requiresApproval: row.requires_approval,
+    token: row.token_value ?? undefined,
   };
 }
 
@@ -134,9 +137,10 @@ export async function createPlayerInvite(input: {
       max_uses: input.mode === "create" ? 1 : input.maxUses,
       expires_at: expiresAt,
       requires_approval: input.requiresApproval,
+      token_value: token,
     })
     .select(
-      "id, mode, jugador_id, max_uses, used_count, expires_at, revoked_at, created_at, last_used_at, requires_approval",
+      "id, mode, jugador_id, max_uses, used_count, expires_at, revoked_at, created_at, last_used_at, requires_approval, token_value",
     )
     .single();
 
@@ -149,7 +153,7 @@ export async function listPlayerInvites(): Promise<PlayerInvite[]> {
   const { data, error } = await supabase
     .from("player_invite_links")
     .select(
-      "id, mode, jugador_id, max_uses, used_count, expires_at, revoked_at, created_at, last_used_at, requires_approval",
+      "id, mode, jugador_id, max_uses, used_count, expires_at, revoked_at, created_at, last_used_at, requires_approval, token_value",
     )
     .order("created_at", { ascending: false });
 
@@ -164,6 +168,41 @@ export async function revokePlayerInvite(id: string): Promise<void> {
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(`Supabase (revocar enlace): ${error.message}`);
+}
+
+export async function deletePlayerInvite(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: invite, error: inviteError } = await supabase
+    .from("player_invite_links")
+    .select("used_count, max_uses")
+    .eq("id", id)
+    .single();
+  if (inviteError) {
+    throw new Error(`Supabase (leer enlace): ${inviteError.message}`);
+  }
+  if (invite.used_count < invite.max_uses) {
+    throw new Error("Solo se pueden eliminar enlaces ya consumidos");
+  }
+
+  const { count, error: pendingError } = await supabase
+    .from("player_invite_submissions")
+    .select("id", { count: "exact", head: true })
+    .eq("invite_id", id)
+    .in("status", ["pending", "processing"]);
+  if (pendingError) {
+    throw new Error(`Supabase (revisar solicitudes): ${pendingError.message}`);
+  }
+  if ((count ?? 0) > 0) {
+    throw new Error(
+      "No se puede eliminar un enlace con solicitudes pendientes",
+    );
+  }
+
+  const { error } = await supabase
+    .from("player_invite_links")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(`Supabase (eliminar enlace): ${error.message}`);
 }
 
 export async function getPublicPlayerInvite(

@@ -1,7 +1,5 @@
 "use server";
 
-import { promises as fs } from "fs";
-import path from "path";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -12,6 +10,7 @@ import {
 import type { Hito, TipoHito, CarryOverPorTorneo } from "@/types";
 import { requireAuth } from "@/lib/auth";
 import { generateId, estaActivoEn, nowISO } from "@/lib/utils";
+import { deletePublicImage, uploadPublicImage } from "@/lib/storage";
 import type {
     Jugador,
     PeriodoEnClub,
@@ -64,31 +63,6 @@ function readTipoHito(v: FormDataEntryValue | null): TipoHito | null {
 }
 
 
-async function guardarFoto(file: File, jugadorId: string): Promise<string> {
-    const ext =
-        file.type === "image/png"
-            ? "png"
-            : file.type === "image/webp"
-                ? "webp"
-                : "jpg";
-    const filename = `${jugadorId}-${Date.now()}.${ext}`;
-    const dir = path.join(process.cwd(), "public", "jugadores");
-    await fs.mkdir(dir, { recursive: true });
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(path.join(dir, filename), buffer);
-    return `/jugadores/${filename}`;
-}
-
-async function borrarArchivoFoto(fotoPath: string | undefined) {
-    if (!fotoPath || !fotoPath.startsWith("/jugadores/")) return;
-    const fullPath = path.join(process.cwd(), "public", fotoPath);
-    try {
-        await fs.unlink(fullPath);
-    } catch {
-        // si no existe el archivo, no pasa nada
-    }
-}
-
 // -------- crearJugador --------
 export async function crearJugador(formData: FormData) {
     await requireAuth();
@@ -137,7 +111,7 @@ export async function crearJugador(formData: FormData) {
 
     const id = generateId("j");
     if (fotoFile instanceof File && fotoFile.size > 0) {
-        fotoPath = await guardarFoto(fotoFile, id);
+        fotoPath = await uploadPublicImage(fotoFile, "jugadores", id);
     }
 
     const jugador: Jugador = {
@@ -200,10 +174,11 @@ export async function editarJugador(formData: FormData) {
             redirect(`/admin/jugadores/${id}/editar?error=foto_grande`);
         if (!TIPOS_FOTO_VALIDOS.includes(fotoFile.type))
             redirect(`/admin/jugadores/${id}/editar?error=foto_tipo`);
-        await borrarArchivoFoto(actual.foto);
-        fotoPath = await guardarFoto(fotoFile, id);
+        const nuevaFoto = await uploadPublicImage(fotoFile, "jugadores", id);
+        await deletePublicImage(actual.foto);
+        fotoPath = nuevaFoto;
     } else if (eliminarFoto) {
-        await borrarArchivoFoto(actual.foto);
+        await deletePublicImage(actual.foto);
         fotoPath = undefined;
     }
 
@@ -337,7 +312,7 @@ export async function eliminarJugador(formData: FormData) {
     if (!id) redirect("/admin/jugadores");
 
     const jugador = await getJugador(id);
-    if (jugador) await borrarArchivoFoto(jugador.foto);
+    if (jugador) await deletePublicImage(jugador.foto);
 
     await deleteJugador(id);
     revalidatePath("/admin/jugadores");

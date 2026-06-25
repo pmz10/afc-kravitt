@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 import {
@@ -311,3 +312,4 @@ export async function ProximoPartido() {
     </ProximoPartidoScroll>
   );
 }
+

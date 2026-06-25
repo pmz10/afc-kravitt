@@ -23,6 +23,14 @@ async function LoginForm({
                 <h1 className="text-xl font-semibold">Acceso admin</h1>
                 <input type="hidden" name="from" value={params.from ?? "/admin"} />
                 <input
+                    type="email"
+                    name="email"
+                    required
+                    autoComplete="username"
+                    placeholder="Correo"
+                    className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 focus:border-orange-500 outline-none"
+                />
+                <input
                     type="password"
                     name="password"
                     required

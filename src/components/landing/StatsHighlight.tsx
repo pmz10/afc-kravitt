@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 import { getJugadores, getPartidos, getTorneos } from "@/lib/data";
@@ -156,20 +157,38 @@ export async function StatsHighlight() {
               label="Diferencia"
               value={
                 stats
-                  ? `${stats.diferenciaGoles > 0 ? "+" : ""}${stats.diferenciaGoles}`
+                  ? `${
+                      stats.diferenciaGoles >
+                      0
+                        ? "+"
+                        : ""
+                    }${
+                      stats.diferenciaGoles
+                    }`
                   : 0
               }
-              accent={(stats?.diferenciaGoles ?? 0) >= 0}
+              accent={
+                (
+                  stats?.diferenciaGoles ??
+                  0
+                ) >= 0
+              }
             />
 
             <StatCard
               label="Partidos"
-              value={stats?.partidosJugados ?? 0}
+              value={
+                stats?.partidosJugados ??
+                0
+              }
             />
 
             <StatCard
               label="Fase final"
-              value={stats?.faseAlcanzada ?? "—"}
+              value={
+                stats?.faseAlcanzada ??
+                "—"
+              }
               small
             />
           </div>
@@ -304,3 +323,4 @@ function StatCard({
     </div>
   );
 }
+

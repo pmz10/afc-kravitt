@@ -1,5 +1,7 @@
+
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+
 import { Hero } from "@/components/landing/Hero";
 import { AboutClub } from "@/components/landing/AboutClub";
 import { ProximoPartido } from "@/components/landing/ProximoPartido";
@@ -23,3 +25,4 @@ export default function HomePage() {
     </>
   );
 }
+

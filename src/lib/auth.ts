@@ -1,34 +1,45 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-const COOKIE_NAME = "afc_admin_session";
-const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 horas
+import { createClient } from "@/lib/supabase/server";
 
 export async function isAuthenticated(): Promise<boolean> {
-    const store = await cookies();
-    const cookie = store.get(COOKIE_NAME);
-    return cookie?.value === process.env.ADMIN_PASSWORD;
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (error || !userId) return false;
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return !adminError && Boolean(admin);
 }
 
 export async function requireAuth(): Promise<void> {
-    if (!(await isAuthenticated())) redirect("/login");
+  if (!(await isAuthenticated())) redirect("/login");
 }
 
-export async function login(password: string): Promise<boolean> {
-    const expected = process.env.ADMIN_PASSWORD;
-    if (!expected || password !== expected) return false;
-    const store = await cookies();
-    store.set(COOKIE_NAME, expected, {
-        httpOnly: true,           // no accesible desde JS del cliente
-        sameSite: "lax",          // protección CSRF básica
-        secure: process.env.NODE_ENV === "production",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-    });
-    return true;
+export async function login(email: string, password: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error || !data.user) return false;
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (adminError || !admin) {
+    await supabase.auth.signOut();
+    return false;
+  }
+
+  return true;
 }
 
 export async function logout(): Promise<void> {
-    const store = await cookies();
-    store.delete(COOKIE_NAME);
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 }

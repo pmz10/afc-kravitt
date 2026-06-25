@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { getJugadores } from "@/lib/data";
+import { getJugadores, getPartidos } from "@/lib/data";
+import { getStatsJugador } from "@/lib/stats";
 import { PlantelDestacadoScroll } from "@/components/landing/PlantelDestacadoScroll";
 
 const POSICION_LABEL: Record<string, string> = {
@@ -11,26 +12,31 @@ const POSICION_LABEL: Record<string, string> = {
 };
 
 export async function PlantelDestacado() {
-  const all = await getJugadores();
+  const [all, partidos] = await Promise.all([
+    getJugadores(),
+    getPartidos(),
+  ]);
 
   /*
-   * Capitán primero, después por goles
+   * Solo jugadores activos. Capitán primero, después por goles derivados,
    * y finalmente se toman ocho jugadores.
    */
-  const destacados = [...all]
+  const destacados = all
+    .filter((j) => j.activo)
+    .map((j) => ({
+      jugador: j,
+      stats: getStatsJugador(j, partidos),
+    }))
     .sort((a, b) => {
-      if (a.capitan && !b.capitan) {
+      if (a.jugador.capitan && !b.jugador.capitan) {
         return -1;
       }
 
-      if (!a.capitan && b.capitan) {
+      if (!a.jugador.capitan && b.jugador.capitan) {
         return 1;
       }
 
-      return (
-        b.stats.goles -
-        a.stats.goles
-      );
+      return b.stats.goles - a.stats.goles;
     })
     .slice(0, 8);
 
@@ -90,14 +96,7 @@ export async function PlantelDestacado() {
 
         {/* Tarjetas */}
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
-          {destacados.map((jugador) => (
-            /*
-             * El contenedor exterior recibe Anime.js.
-             *
-             * El article interior conserva la animación
-             * hover sin entrar en conflicto con el
-             * transform inline de Anime.js.
-             */
+          {destacados.map(({ jugador, stats }) => (
             <div
               key={jugador.id}
               data-player-card
@@ -119,9 +118,7 @@ export async function PlantelDestacado() {
                     className="flex flex-wrap items-center gap-1.5 will-change-[transform,opacity] sm:gap-2"
                   >
                     <span className="inline-flex h-5 items-center rounded-md bg-kravitt-orange/20 px-1.5 text-[8px] font-bold uppercase tracking-widest text-kravitt-orange ring-1 ring-kravitt-orange/30 sm:h-6 sm:px-2 sm:text-[10px]">
-                      {POSICION_LABEL[
-                        jugador.posicion
-                      ]}
+                      {POSICION_LABEL[jugador.posicion]}
                     </span>
 
                     {jugador.capitan && (
@@ -158,14 +155,9 @@ export async function PlantelDestacado() {
                     className="flex items-center justify-between border-t border-kravitt-petrol/80 pt-2 will-change-[transform,opacity] sm:pt-3"
                   >
                     <span className="text-[8px] uppercase tracking-widest text-kravitt-cream/50 sm:text-[10px]">
-                      Goles{" "}
-                      {jugador.stats.goles}
+                      Goles {stats.goles}
                       {" · "}
-                      PJ{" "}
-                      {
-                        jugador.stats
-                          .partidosJugados
-                      }
+                      PJ {stats.partidosJugados}
                     </span>
                   </div>
                 </div>

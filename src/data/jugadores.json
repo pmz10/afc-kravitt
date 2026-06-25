@@ -1,111 +1,26 @@
 [
   {
-    "id": "j-17-norman-martinez",
-    "nombre": "Norman",
-    "apellido": "Martinez",
-    "dorsal": 17,
-    "posicion": "DEF",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-7-yamil-garcia",
-    "nombre": "Yamil",
-    "apellido": "García",
-    "dorsal": 7,
-    "posicion": "MED",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-24-aldo-garcia",
-    "nombre": "Aldo",
-    "apellido": "García",
-    "dorsal": 24,
-    "posicion": "DEF",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-30-christian-lazcano",
-    "nombre": "Christian",
-    "apellido": "Lazcano",
-    "dorsal": 30,
-    "posicion": "POR",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-5-oscar-cordova",
-    "nombre": "Oscar",
-    "apellido": "Cordova",
-    "dorsal": 5,
-    "posicion": "DEF",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-2-emanuel-rojas",
-    "nombre": "Emanuel",
-    "apellido": "Rojas",
-    "dorsal": 2,
-    "posicion": "DEF",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 1, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-11-erick-lopez",
-    "nombre": "Erick",
-    "apellido": "López",
-    "dorsal": 11,
-    "posicion": "DEL",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-45-adrian-tobon",
-    "nombre": "Adrian",
-    "apellido": "Tobon",
-    "dorsal": 45,
-    "posicion": "MED",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-9-sebastian-tobon",
-    "nombre": "Sebastian",
-    "apellido": "Tobon",
-    "dorsal": 9,
-    "posicion": "DEL",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 2, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-10-gerardo-garcia",
+    "id": "j_mqlp9gezeutemz",
     "nombre": "Gerardo",
     "apellido": "García",
-    "dorsal": 10,
+    "apodo": "Pamperzy",
+    "dorsal": 79,
     "posicion": "MED",
+    "posicionesSecundarias": [
+      "DEL"
+    ],
+    "pieDominante": "izq",
+    "bio": "Pionero del equipo, solo espera.",
+    "fechaNacimiento": "1995-06-10",
     "capitan": true,
+    "historial": [
+      {
+        "id": "per_mqlp9gezwdej98",
+        "desde": "2024-05-08",
+        "notas": "Creador"
+      }
+    ],
     "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-8-alexis-hernandez",
-    "nombre": "Alexis",
-    "apellido": "Hernández",
-    "dorsal": 8,
-    "posicion": "MED",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 2, "asistencias": 0, "amarillas": 0, "rojas": 0 }
-  },
-  {
-    "id": "j-12-eduardo-hernandez",
-    "nombre": "Eduardo",
-    "apellido": "Hernández",
-    "dorsal": 12,
-    "posicion": "DEL",
-    "activo": true,
-    "stats": { "partidosJugados": 25, "goles": 0, "asistencias": 0, "amarillas": 0, "rojas": 0 }
+    "esLeyenda": true
   }
 ]

@@ -1,19 +1,80 @@
 
 import Link from "next/link";
 
-import {
-  getEstadisticasTemporadaActual,
-  getTopGoleadores,
-} from "@/lib/data";
-
+import { getJugadores, getPartidos, getTorneos } from "@/lib/data";
+import { getStatsJugador } from "@/lib/stats";
 import { StatsHighlightScroll } from "@/components/landing/StatsHighlightScroll";
 
 export async function StatsHighlight() {
-  const stats =
-    await getEstadisticasTemporadaActual();
+  const [jugadores, partidos, torneos] = await Promise.all([
+    getJugadores(),
+    getPartidos(),
+    getTorneos(),
+  ]);
 
-  const goleadores =
-    await getTopGoleadores(3);
+  // Torneo "actual": en_curso si hay, sino el finalizado más reciente
+  const torneoActual =
+    torneos.find((t) => t.estado === "en_curso") ??
+    torneos
+      .filter((t) => t.estado === "finalizado")
+      .sort((a, b) => b.temporada.localeCompare(a.temporada))[0];
+
+  // Stats agregadas del equipo en ese torneo
+  let stats: {
+    temporada: string;
+    partidosJugados: number;
+    victorias: number;
+    empates: number;
+    derrotas: number;
+    golesFavor: number;
+    golesContra: number;
+    diferenciaGoles: number;
+    posicionFinal?: number;
+    faseAlcanzada?: string;
+    resumen?: string;
+  } | null = null;
+
+  if (torneoActual) {
+    const partidosTorneo = partidos.filter(
+      (p) => p.torneoId === torneoActual.id && p.resultado !== "pendiente",
+    );
+    let v = 0;
+    let e = 0;
+    let d = 0;
+    let gf = 0;
+    let gc = 0;
+    for (const p of partidosTorneo) {
+      if (p.resultado === "ganado" || p.resultado === "default-favor") v++;
+      else if (p.resultado === "empatado") e++;
+      else if (p.resultado === "perdido" || p.resultado === "default-contra")
+        d++;
+      if (p.golesFavor !== undefined) gf += p.golesFavor;
+      if (p.golesContra !== undefined) gc += p.golesContra;
+    }
+    stats = {
+      temporada: torneoActual.temporada,
+      partidosJugados: partidosTorneo.length,
+      victorias: v,
+      empates: e,
+      derrotas: d,
+      golesFavor: gf,
+      golesContra: gc,
+      diferenciaGoles: gf - gc,
+      posicionFinal: torneoActual.posicionFinal,
+      faseAlcanzada: torneoActual.faseAlcanzada,
+      resumen: torneoActual.resumen,
+    };
+  }
+
+  // Top 3 goleadores
+  const goleadores = jugadores
+    .map((j) => ({
+      ...j,
+      goles: getStatsJugador(j, partidos).goles,
+    }))
+    .filter((g) => g.goles > 0)
+    .sort((a, b) => b.goles - a.goles)
+    .slice(0, 3);
 
   return (
     <StatsHighlightScroll>
@@ -50,8 +111,12 @@ export async function StatsHighlight() {
             />
 
             <span className="text-[10px] uppercase tracking-[0.4em] text-kravitt-orange sm:text-xs">
+<<<<<<< HEAD
               Temporada{" "}
               {stats?.temporada ?? "—"}
+=======
+              Temporada {stats?.temporada ?? "—"}
+>>>>>>> origin/main
             </span>
           </div>
 
@@ -68,14 +133,19 @@ export async function StatsHighlight() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:col-span-3">
             <StatCard
               label="Posición final"
+<<<<<<< HEAD
               value={
                 stats?.posicionFinal ?? "—"
               }
+=======
+              value={stats?.posicionFinal ?? "—"}
+>>>>>>> origin/main
               sufijo="°"
             />
 
             <StatCard
               label="Victorias"
+<<<<<<< HEAD
               value={
                 stats?.victorias ?? 0
               }
@@ -101,14 +171,31 @@ export async function StatsHighlight() {
               value={
                 stats?.golesFavor ?? 0
               }
+=======
+              value={stats?.victorias ?? 0}
+              accent
+            />
+
+            <StatCard label="Empates" value={stats?.empates ?? 0} />
+
+            <StatCard label="Derrotas" value={stats?.derrotas ?? 0} />
+
+            <StatCard
+              label="Goles a favor"
+              value={stats?.golesFavor ?? 0}
+>>>>>>> origin/main
               accent
             />
 
             <StatCard
               label="Goles en contra"
+<<<<<<< HEAD
               value={
                 stats?.golesContra ?? 0
               }
+=======
+              value={stats?.golesContra ?? 0}
+>>>>>>> origin/main
             />
 
             <StatCard
@@ -181,6 +268,7 @@ export async function StatsHighlight() {
                   Sin datos de goleadores aún.
                 </li>
               ) : (
+<<<<<<< HEAD
                 goleadores.map(
                   (jugador, index) => (
                     <li
@@ -223,6 +311,47 @@ export async function StatsHighlight() {
                     </li>
                   ),
                 )
+=======
+                goleadores.map((jugador, index) => (
+                  <li
+                    key={jugador.id}
+                    data-scorer-item
+                    className="flex items-center gap-3 rounded-2xl bg-kravitt-deep/70 px-3 py-3 will-change-[transform,opacity] sm:gap-4 sm:px-4"
+                  >
+                    <span
+                      data-scorer-rank
+                      className="w-7 shrink-0 text-center text-display text-2xl text-kravitt-orange will-change-[transform,opacity] sm:w-8 sm:text-3xl"
+                    >
+                      {index + 1}
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-kravitt-cream sm:text-base">
+                        {jugador.nombre} {jugador.apellido}
+                      </p>
+
+                      <p className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
+                        #{jugador.dorsal}
+                        {" · "}
+                        {jugador.posicion}
+                      </p>
+                    </div>
+
+                    <div
+                      data-scorer-goals
+                      className="flex shrink-0 flex-col items-end leading-tight will-change-[transform,opacity]"
+                    >
+                      <span className="text-display text-xl text-kravitt-cream sm:text-2xl">
+                        {jugador.goles}
+                      </span>
+
+                      <span className="text-[9px] uppercase tracking-widest text-kravitt-cream/40 sm:text-[10px]">
+                        Goles
+                      </span>
+                    </div>
+                  </li>
+                ))
+>>>>>>> origin/main
               )}
             </ol>
           </div>
@@ -275,6 +404,7 @@ function StatCard({
       <p
         data-stat-value
         className={`text-display leading-none will-change-[transform,opacity] ${
+<<<<<<< HEAD
           small
             ? "text-base sm:text-xl"
             : "text-3xl sm:text-5xl"
@@ -283,6 +413,10 @@ function StatCard({
             ? "text-kravitt-orange"
             : "text-kravitt-cream"
         }`}
+=======
+          small ? "text-base sm:text-xl" : "text-3xl sm:text-5xl"
+        } ${accent ? "text-kravitt-orange" : "text-kravitt-cream"}`}
+>>>>>>> origin/main
       >
         {value}
         {sufijo}

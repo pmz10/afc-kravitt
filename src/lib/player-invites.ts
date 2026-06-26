@@ -2,6 +2,31 @@ import { createHash, randomBytes } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 
 export type PlayerInviteMode = "create" | "edit";
+export type PlayerInviteSection = "personal" | "sports" | "profile";
+
+export const PLAYER_INVITE_SECTIONS: PlayerInviteSection[] = [
+  "personal",
+  "sports",
+  "profile",
+];
+
+const PLAYER_INVITE_SECTION_SET = new Set<PlayerInviteSection>(
+  PLAYER_INVITE_SECTIONS,
+);
+
+const PLAYER_INVITE_SECTION_FIELDS: Record<PlayerInviteSection, string[]> = {
+  personal: ["nombre", "apellido", "apodo", "fechaNacimiento", "email"],
+  sports: [
+    "dorsal",
+    "posicion",
+    "posicionesSecundarias",
+    "pieDominante",
+    "capitan",
+  ],
+  profile: ["bio"],
+};
+
+const CREATE_ONLY_FIELDS = ["desde", "notasPeriodo"];
 
 export type PlayerInvite = {
   id: string;
@@ -15,6 +40,7 @@ export type PlayerInvite = {
   lastUsedAt?: string;
   requiresApproval: boolean;
   token?: string;
+  allowedSections: PlayerInviteSection[];
 };
 
 export type PlayerInviteSubmissionStatus =
@@ -41,6 +67,7 @@ export type PublicPlayerInvite = {
   mode?: PlayerInviteMode;
   remainingUses?: number;
   expiresAt?: string;
+  allowedSections?: PlayerInviteSection[];
   jugador?: {
     id: string;
     nombre: string;
@@ -97,7 +124,75 @@ function mapInvite(row: InviteRow): PlayerInvite {
     lastUsedAt: row.last_used_at ?? undefined,
     requiresApproval: row.requires_approval,
     token: row.token_value ?? undefined,
+    allowedSections: getAllowedSectionsFromToken(row.token_value),
   };
+}
+
+function normalizeAllowedSections(
+  sections: unknown,
+): PlayerInviteSection[] {
+  if (!Array.isArray(sections)) return [...PLAYER_INVITE_SECTIONS];
+
+  const normalized = sections.filter(
+    (section): section is PlayerInviteSection =>
+      typeof section === "string" &&
+      PLAYER_INVITE_SECTION_SET.has(section as PlayerInviteSection),
+  );
+
+  return normalized.length
+    ? [...new Set(normalized)]
+    : [...PLAYER_INVITE_SECTIONS];
+}
+
+function encodeTokenConfig(sections: PlayerInviteSection[]): string {
+  return Buffer.from(JSON.stringify({ s: sections }), "utf8").toString(
+    "base64url",
+  );
+}
+
+function decodeTokenConfig(token: string): PlayerInviteSection[] | undefined {
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts[0] !== "v1") return undefined;
+
+  try {
+    const decoded = JSON.parse(
+      Buffer.from(parts[1], "base64url").toString("utf8"),
+    ) as { s?: unknown };
+    return normalizeAllowedSections(decoded.s);
+  } catch {
+    return undefined;
+  }
+}
+
+function createInviteToken(sections: PlayerInviteSection[]): string {
+  return `v1.${encodeTokenConfig(sections)}.${randomBytes(32).toString(
+    "base64url",
+  )}`;
+}
+
+export function getAllowedSectionsFromToken(
+  token?: string | null,
+): PlayerInviteSection[] {
+  return token
+    ? (decodeTokenConfig(token) ?? [...PLAYER_INVITE_SECTIONS])
+    : [...PLAYER_INVITE_SECTIONS];
+}
+
+export function filterPlayerInvitePayloadByToken(
+  token: string,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const allowedSections = getAllowedSectionsFromToken(token);
+  const allowedFields = new Set([
+    ...allowedSections.flatMap(
+      (section) => PLAYER_INVITE_SECTION_FIELDS[section],
+    ),
+    ...CREATE_ONLY_FIELDS,
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([key]) => allowedFields.has(key)),
+  );
 }
 
 function mapSubmission(row: SubmissionRow): PlayerInviteSubmission {
@@ -121,8 +216,10 @@ export async function createPlayerInvite(input: {
   maxUses: number;
   expiresInDays: number;
   requiresApproval: boolean;
+  allowedSections?: PlayerInviteSection[];
 }): Promise<{ token: string; invite: PlayerInvite }> {
-  const token = randomBytes(32).toString("base64url");
+  const allowedSections = normalizeAllowedSections(input.allowedSections);
+  const token = createInviteToken(allowedSections);
   const tokenHash = createHash("sha256").update(token).digest("hex");
   const expiresAt = new Date(
     Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000,
@@ -174,14 +271,14 @@ export async function deletePlayerInvite(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: invite, error: inviteError } = await supabase
     .from("player_invite_links")
-    .select("used_count, max_uses")
+    .select("used_count, max_uses, revoked_at")
     .eq("id", id)
     .single();
   if (inviteError) {
     throw new Error(`Supabase (leer enlace): ${inviteError.message}`);
   }
-  if (invite.used_count < invite.max_uses) {
-    throw new Error("Solo se pueden eliminar enlaces ya consumidos");
+  if (invite.used_count < invite.max_uses && !invite.revoked_at) {
+    throw new Error("Solo se pueden eliminar enlaces ya consumidos o revocados");
   }
 
   const { count, error: pendingError } = await supabase
@@ -213,7 +310,14 @@ export async function getPublicPlayerInvite(
     p_token: token,
   });
   if (error) return { valid: false };
-  return data as PublicPlayerInvite;
+  const invite = data as PublicPlayerInvite;
+  return {
+    ...invite,
+    allowedSections:
+      invite.valid && invite.mode === "edit"
+        ? getAllowedSectionsFromToken(token)
+        : [...PLAYER_INVITE_SECTIONS],
+  };
 }
 
 export async function submitPublicPlayerInvite(
@@ -225,9 +329,10 @@ export async function submitPublicPlayerInvite(
   pendingApproval: boolean;
 }> {
   const supabase = await createClient();
+  const filteredPayload = filterPlayerInvitePayloadByToken(token, payload);
   const { data, error } = await supabase.rpc("submit_player_invite", {
     p_token: token,
-    p_data: payload,
+    p_data: filteredPayload,
   });
   if (error) throw new Error(error.message);
   return {

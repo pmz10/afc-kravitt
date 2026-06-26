@@ -1,4 +1,7 @@
-import { getPublicPlayerInvite } from "@/lib/player-invites";
+import {
+  PLAYER_INVITE_SECTIONS,
+  getPublicPlayerInvite,
+} from "@/lib/player-invites";
 import { toISODate } from "@/lib/utils";
 import { guardarDatosInvitacion } from "./actions";
 
@@ -66,6 +69,15 @@ export default async function InvitacionJugadorPage({
   }
 
   const jugador = invite.jugador;
+  const allowedSections = new Set(
+    invite.mode === "create"
+      ? PLAYER_INVITE_SECTIONS
+      : (invite.allowedSections ?? PLAYER_INVITE_SECTIONS),
+  );
+  const showPersonal = allowedSections.has("personal");
+  const showSports = allowedSections.has("sports");
+  const showProfile = allowedSections.has("profile");
+
   return (
     <PublicShell>
       <header>
@@ -92,6 +104,7 @@ export default async function InvitacionJugadorPage({
       <form action={guardarDatosInvitacion} className="space-y-7">
         <input type="hidden" name="token" value={token} />
 
+        {showPersonal && (
         <Section title="Datos personales">
           <Field label="Nombre *">
             <input
@@ -137,7 +150,9 @@ export default async function InvitacionJugadorPage({
             />
           </Field>
         </Section>
+        )}
 
+        {showSports && (
         <Section title="Información deportiva">
           <Field label="Dorsal *">
             <input
@@ -213,6 +228,7 @@ export default async function InvitacionJugadorPage({
             </label>
           </Field>
         </Section>
+        )}
 
         {invite.mode === "create" && (
           <Section title="Ingreso al club">
@@ -231,6 +247,7 @@ export default async function InvitacionJugadorPage({
           </Section>
         )}
 
+        {showProfile && (
         <Section title="Perfil">
           <Field label="Bio" full>
             <textarea
@@ -242,6 +259,7 @@ export default async function InvitacionJugadorPage({
             />
           </Field>
         </Section>
+        )}
 
         <button className="w-full rounded-lg bg-orange-500 px-5 py-3 font-medium text-neutral-950 hover:bg-orange-400">
           Guardar datos

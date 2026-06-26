@@ -2,8 +2,10 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getJugadores } from "@/lib/data";
 import {
+  PLAYER_INVITE_SECTIONS,
   listPlayerInvites,
   listPlayerInviteSubmissions,
+  type PlayerInviteSection,
 } from "@/lib/player-invites";
 import {
   aprobarSolicitudJugador,
@@ -13,9 +15,18 @@ import {
   revocarEnlaceJugador,
 } from "./actions";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { SubmitButton } from "./SubmitButton";
 
 const inputCls =
   "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
+const primaryButtonCls =
+  "rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-orange-400";
+
+const SECTION_LABELS: Record<PlayerInviteSection, string> = {
+  personal: "Datos personales",
+  sports: "Información deportiva",
+  profile: "Perfil",
+};
 
 export default async function EnlacesJugadoresPage({
   searchParams,
@@ -101,7 +112,9 @@ export default async function EnlacesJugadoresPage({
 
       {params.error && (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
-          Selecciona un jugador válido.
+          {params.error === "sections"
+            ? "Selecciona al menos una sección para el enlace de edición."
+            : "Selecciona un jugador válido."}
         </p>
       )}
 
@@ -161,9 +174,9 @@ export default async function EnlacesJugadoresPage({
               </span>
             </span>
           </label>
-          <button className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-orange-400">
+          <SubmitButton className={primaryButtonCls}>
             Generar enlace de alta
-          </button>
+          </SubmitButton>
         </form>
 
         <form
@@ -218,6 +231,24 @@ export default async function EnlacesJugadoresPage({
               />
             </Field>
           </div>
+          <Field label="Secciones habilitadas">
+            <div className="space-y-2 rounded-lg border border-neutral-800 bg-neutral-900/60 p-3 text-sm">
+              {PLAYER_INVITE_SECTIONS.map((section) => (
+                <label key={section} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="allowedSections"
+                    value={section}
+                    defaultChecked
+                  />
+                  <span>{SECTION_LABELS[section]}</span>
+                </label>
+              ))}
+              <p className="text-xs text-neutral-500">
+                La persona solo verá y podrá enviar las secciones seleccionadas.
+              </p>
+            </div>
+          </Field>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" name="requiresApproval" className="mt-1" />
             <span>
@@ -227,9 +258,9 @@ export default async function EnlacesJugadoresPage({
               </span>
             </span>
           </label>
-          <button className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-orange-400">
+          <SubmitButton className={primaryButtonCls}>
             Generar enlace de edición
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -295,36 +326,21 @@ export default async function EnlacesJugadoresPage({
                           Último intento: {submission.errorMessage}
                         </p>
                       )}
-                      <SubmissionPreview
-                        mode={submission.mode}
-                        payload={payload}
-                        currentPlayer={currentPlayer}
-                      />
+                      {submission.status === "pending" ? (
+                        <SubmissionEditor
+                          id={submission.id}
+                          mode={submission.mode}
+                          payload={payload}
+                          currentPlayer={currentPlayer}
+                        />
+                      ) : (
+                        <SubmissionPreview
+                          mode={submission.mode}
+                          payload={payload}
+                          currentPlayer={currentPlayer}
+                        />
+                      )}
                     </div>
-                    {submission.status === "pending" && (
-                      <div className="flex items-center gap-2">
-                        <form action={aprobarSolicitudJugador}>
-                          <input
-                            type="hidden"
-                            name="id"
-                            value={submission.id}
-                          />
-                          <button className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-medium text-neutral-950 hover:bg-emerald-400">
-                            Aprobar
-                          </button>
-                        </form>
-                        <form action={rechazarSolicitudJugador}>
-                          <input
-                            type="hidden"
-                            name="id"
-                            value={submission.id}
-                          />
-                          <button className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">
-                            Rechazar
-                          </button>
-                        </form>
-                      </div>
-                    )}
                   </div>
                 </article>
               );
@@ -361,11 +377,19 @@ export default async function EnlacesJugadoresPage({
                       ? `${protocol}://${host}/jugador/invitacion/${invite.token}`
                       : null;
                   const canDelete =
-                    exhausted && !pendingInviteIds.has(invite.id);
+                    (exhausted || invite.revokedAt) &&
+                    !pendingInviteIds.has(invite.id);
                   return (
                     <tr key={invite.id} className="border-t border-neutral-800">
                       <td className="px-4 py-3">
                         {invite.mode === "create" ? "Alta" : "Edición"}
+                        {invite.mode === "edit" && (
+                          <p className="mt-1 text-xs text-neutral-500">
+                            {invite.allowedSections
+                              .map((section) => SECTION_LABELS[section])
+                              .join(", ")}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-neutral-400">
                         {invite.jugadorId
@@ -486,6 +510,326 @@ function displayValue(value: unknown): string {
   if (typeof value === "boolean") return value ? "Sí" : "No";
   if (value === null || value === undefined || value === "") return "—";
   return String(value);
+}
+
+function hasPayloadKey(payload: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(payload, key);
+}
+
+function payloadInputValue(
+  payload: Record<string, unknown>,
+  key: string,
+): string {
+  const value = payload[key];
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
+function sectionWasSubmitted(
+  mode: "create" | "edit",
+  payload: Record<string, unknown>,
+  keys: string[],
+): boolean {
+  return mode === "create" || keys.some((key) => hasPayloadKey(payload, key));
+}
+
+function SubmissionEditor({
+  id,
+  mode,
+  payload,
+  currentPlayer,
+}: {
+  id: string;
+  mode: "create" | "edit";
+  payload: Record<string, unknown>;
+  currentPlayer?: PreviewPlayer;
+}) {
+  const showPersonal = sectionWasSubmitted(mode, payload, [
+    "nombre",
+    "apellido",
+    "apodo",
+    "fechaNacimiento",
+    "email",
+  ]);
+  const showSports = sectionWasSubmitted(mode, payload, [
+    "dorsal",
+    "posicion",
+    "posicionesSecundarias",
+    "pieDominante",
+    "capitan",
+  ]);
+  const showProfile = sectionWasSubmitted(mode, payload, ["bio"]);
+  const posicionesSecundarias = Array.isArray(payload.posicionesSecundarias)
+    ? payload.posicionesSecundarias.filter(
+        (value): value is string => typeof value === "string",
+      )
+    : [];
+
+  return (
+    <div className="mt-4 space-y-3">
+      <form
+        action={aprobarSolicitudJugador}
+        className="rounded-lg border border-neutral-800 bg-neutral-900/50"
+      >
+        <input type="hidden" name="id" value={id} />
+        <input type="hidden" name="payloadEditor" value="1" />
+        <details open>
+          <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-sky-300">
+            Ver y editar datos antes de aprobar
+          </summary>
+          <div className="space-y-5 border-t border-neutral-800 p-3">
+            {showPersonal && (
+              <EditorSection title="Datos personales">
+                <EditableField label="Nombre" current={currentPlayer?.nombre} required>
+                  <input
+                    name="nombre"
+                    required={mode === "create" || hasPayloadKey(payload, "nombre")}
+                    defaultValue={payloadInputValue(payload, "nombre")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField
+                  label="Apellido"
+                  current={currentPlayer?.apellido}
+                  required
+                >
+                  <input
+                    name="apellido"
+                    required={
+                      mode === "create" || hasPayloadKey(payload, "apellido")
+                    }
+                    defaultValue={payloadInputValue(payload, "apellido")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField label="Apodo" current={currentPlayer?.apodo}>
+                  <input
+                    name="apodo"
+                    defaultValue={payloadInputValue(payload, "apodo")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField
+                  label="Fecha de nacimiento"
+                  current={currentPlayer?.fechaNacimiento}
+                >
+                  <input
+                    type="date"
+                    name="fechaNacimiento"
+                    defaultValue={payloadInputValue(payload, "fechaNacimiento")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField label="Email" current={currentPlayer?.email} full>
+                  <input
+                    type="email"
+                    name="email"
+                    defaultValue={payloadInputValue(payload, "email")}
+                    className={inputCls}
+                  />
+                </EditableField>
+              </EditorSection>
+            )}
+
+            {showSports && (
+              <EditorSection title="Información deportiva">
+                <EditableField
+                  label="Dorsal"
+                  current={currentPlayer?.dorsal}
+                  required
+                >
+                  <input
+                    type="number"
+                    name="dorsal"
+                    min={0}
+                    max={99}
+                    required={mode === "create" || hasPayloadKey(payload, "dorsal")}
+                    defaultValue={payloadInputValue(payload, "dorsal")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField
+                  label="Posición principal"
+                  current={currentPlayer?.posicion}
+                  required
+                >
+                  <select
+                    name="posicion"
+                    required={
+                      mode === "create" || hasPayloadKey(payload, "posicion")
+                    }
+                    defaultValue={payloadInputValue(payload, "posicion")}
+                    className={inputCls}
+                  >
+                    <option value="" disabled>
+                      Selecciona una
+                    </option>
+                    <option value="POR">Portero</option>
+                    <option value="DEF">Defensa</option>
+                    <option value="MED">Medio</option>
+                    <option value="DEL">Delantero</option>
+                  </select>
+                </EditableField>
+                <EditableField
+                  label="Posiciones secundarias"
+                  current={currentPlayer?.posicionesSecundarias}
+                  full
+                >
+                  <input
+                    type="hidden"
+                    name="posicionesSecundariasPresent"
+                    value="1"
+                  />
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {(["POR", "DEF", "MED", "DEL"] as const).map((position) => (
+                      <label key={position} className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          name="posicionesSecundarias"
+                          value={position}
+                          defaultChecked={posicionesSecundarias.includes(position)}
+                        />
+                        {position}
+                      </label>
+                    ))}
+                  </div>
+                </EditableField>
+                <EditableField
+                  label="Pie dominante"
+                  current={currentPlayer?.pieDominante}
+                  full
+                >
+                  <input type="hidden" name="pieDominantePresent" value="1" />
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {(["izq", "der", "ambos"] as const).map((foot) => (
+                      <label key={foot} className="flex items-center gap-1.5">
+                        <input
+                          type="radio"
+                          name="pieDominante"
+                          value={foot}
+                          defaultChecked={payload.pieDominante === foot}
+                        />
+                        {foot === "izq"
+                          ? "Izquierdo"
+                          : foot === "der"
+                            ? "Derecho"
+                            : "Ambos"}
+                      </label>
+                    ))}
+                  </div>
+                </EditableField>
+                <EditableField
+                  label="Capitán"
+                  current={currentPlayer?.capitan}
+                  full
+                >
+                  <input type="hidden" name="capitanPresent" value="1" />
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="capitan"
+                      defaultChecked={payload.capitan === true}
+                    />
+                    Capitán del equipo
+                  </label>
+                </EditableField>
+              </EditorSection>
+            )}
+
+            {mode === "create" && (
+              <EditorSection title="Ingreso al club">
+                <EditableField label="Fecha de ingreso" required>
+                  <input
+                    type="date"
+                    name="desde"
+                    required
+                    defaultValue={payloadInputValue(payload, "desde")}
+                    className={inputCls}
+                  />
+                </EditableField>
+                <EditableField label="Notas">
+                  <input
+                    name="notasPeriodo"
+                    defaultValue={payloadInputValue(payload, "notasPeriodo")}
+                    className={inputCls}
+                  />
+                </EditableField>
+              </EditorSection>
+            )}
+
+            {showProfile && (
+              <EditorSection title="Perfil">
+                <EditableField label="Bio" current={currentPlayer?.bio} full>
+                  <textarea
+                    name="bio"
+                    rows={4}
+                    defaultValue={payloadInputValue(payload, "bio")}
+                    className={inputCls}
+                  />
+                </EditableField>
+              </EditorSection>
+            )}
+
+            <button className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-medium text-neutral-950 hover:bg-emerald-400">
+              Aprobar y guardar estos datos
+            </button>
+          </div>
+        </details>
+      </form>
+      <form action={rechazarSolicitudJugador}>
+        <input type="hidden" name="id" value={id} />
+        <button className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">
+          Rechazar solicitud
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function EditorSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <h4 className="text-xs uppercase tracking-widest text-neutral-500">
+        {title}
+      </h4>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{children}</div>
+    </section>
+  );
+}
+
+function EditableField({
+  label,
+  current,
+  children,
+  full = false,
+  required = false,
+}: {
+  label: string;
+  current?: unknown;
+  children: React.ReactNode;
+  full?: boolean;
+  required?: boolean;
+}) {
+  return (
+    <div className={`flex flex-col gap-1.5 ${full ? "md:col-span-2" : ""}`}>
+      <span className="text-xs uppercase tracking-wider text-neutral-400">
+        {label}
+        {required ? " *" : ""}
+      </span>
+      {current !== undefined && (
+        <span className="text-[11px] text-neutral-500">
+          Actual: {displayValue(current)}
+        </span>
+      )}
+      {children}
+    </div>
+  );
 }
 
 function SubmissionPreview({

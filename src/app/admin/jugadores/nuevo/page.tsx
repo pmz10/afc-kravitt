@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { crearJugador } from "../actions";
 import { toISODate } from "@/lib/utils";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -8,7 +9,7 @@ const inputCls =
 const ERRORES: Record<string, string> = {
     campos: "Faltan campos obligatorios. Revisá los marcados con *.",
     foto_grande:
-        "La foto pesa más de 2 MB. Comprimila primero con Squoosh y volvé a intentar.",
+        "La foto pesa más de 10 MB. Comprimila primero con Squoosh y volvé a intentar.",
     foto_tipo: "La foto debe ser JPG, PNG o WebP.",
 };
 
@@ -152,14 +153,12 @@ export default async function NuevoJugadorPage({
                 {/* ───── Perfil ───── */}
                 <Seccion titulo="Perfil">
                     <Field label="Foto" full>
-                        <input
-                            type="file"
+                        <ImageUploadField
                             name="foto"
-                            accept="image/jpeg,image/png,image/webp"
-                            className={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
+                            inputClassName={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
                         />
                         <span className="text-xs text-neutral-500 mt-1">
-                            JPG, PNG o WebP. Máx 2 MB. Para mejor rendimiento comprimila antes
+                            JPG, PNG o WebP. Máx 10 MB. Para mejor rendimiento comprimila antes
                             en{" "}
                             <a
                                 href="https://squoosh.app"

@@ -14,7 +14,7 @@ import { generateId } from "@/lib/utils";
 import { deletePublicImage, uploadPublicImage } from "@/lib/storage";
 import type { JugadorRival, Posicion, Rival } from "@/types";
 
-const MAX_ESCUDO_BYTES = 2 * 1024 * 1024;
+const MAX_ESCUDO_BYTES = 10 * 1024 * 1024;
 const TIPOS_ESCUDO_VALIDOS = ["image/jpeg", "image/png", "image/webp"];
 
 function readStr(formData: FormData, key: string): string | undefined {
@@ -42,7 +42,7 @@ export async function crearRival(formData: FormData) {
 
     const id = generateId("r");
     if (escudoFile instanceof File && escudoFile.size > 0) {
-        escudoPath = await uploadPublicImage(escudoFile, "rivales", id);
+        escudoPath = await uploadPublicImage(escudoFile, "equipos", id);
     }
 
     const rival: Rival = {
@@ -80,7 +80,7 @@ export async function editarRival(formData: FormData) {
             redirect(`/admin/rivales/${id}/editar?error=escudo_grande`);
         if (!TIPOS_ESCUDO_VALIDOS.includes(escudoFile.type))
             redirect(`/admin/rivales/${id}/editar?error=escudo_tipo`);
-        const nuevoEscudo = await uploadPublicImage(escudoFile, "rivales", id);
+        const nuevoEscudo = await uploadPublicImage(escudoFile, "equipos", id);
         await deletePublicImage(actual.escudo);
         escudoPath = nuevoEscudo;
     } else if (eliminarEscudo) {

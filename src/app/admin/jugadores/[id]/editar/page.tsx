@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getJugador } from "@/lib/data";
 import { toISODate } from "@/lib/utils";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import {
     darDeBaja,
     editarJugador,
@@ -15,7 +16,7 @@ const inputCls =
 
 const ERRORES: Record<string, string> = {
     campos: "Faltan campos obligatorios.",
-    foto_grande: "La foto pesa más de 2 MB.",
+    foto_grande: "La foto pesa más de 10 MB.",
     foto_tipo: "La foto debe ser JPG, PNG o WebP.",
 };
 
@@ -153,14 +154,12 @@ export default async function EditarJugadorPage({
                                 </label>
                             </div>
                         )}
-                        <input
-                            type="file"
+                        <ImageUploadField
                             name="foto"
-                            accept="image/jpeg,image/png,image/webp"
-                            className={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
+                            inputClassName={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
                         />
                         <span className="text-xs text-neutral-500 mt-1">
-                            Subí una nueva para reemplazar. Máx 2 MB.
+                            Subí una nueva para reemplazar. Máx 10 MB.
                         </span>
                     </Field>
                     <Field label="Bio" full>

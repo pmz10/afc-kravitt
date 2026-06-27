@@ -19,7 +19,7 @@ import type {
     StatsCarryOver,
 } from "@/types";
 
-const MAX_FOTO_BYTES = 2 * 1024 * 1024;
+const MAX_FOTO_BYTES = 10 * 1024 * 1024;
 const TIPOS_FOTO_VALIDOS = ["image/jpeg", "image/png", "image/webp"];
 const POSICIONES: Posicion[] = ["POR", "DEF", "MED", "DEL"];
 const TIPOS_HITO: TipoHito[] = [

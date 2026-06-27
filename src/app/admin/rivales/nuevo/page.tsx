@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { crearRival } from "../actions";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
 
 const ERRORES: Record<string, string> = {
     campos: "El nombre es obligatorio.",
-    escudo_grande: "El escudo pesa más de 2 MB.",
+    escudo_grande: "El escudo pesa más de 10 MB.",
     escudo_tipo: "El escudo debe ser JPG, PNG o WebP.",
 };
 
@@ -56,14 +57,12 @@ export default async function NuevoRivalPage({
                     <input name="ciudad" className={inputCls} />
                 </Field>
                 <Field label="Escudo">
-                    <input
-                        type="file"
+                    <ImageUploadField
                         name="escudo"
-                        accept="image/jpeg,image/png,image/webp"
-                        className={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
+                        inputClassName={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
                     />
                     <span className="text-xs text-neutral-500 mt-1 block">
-                        JPG, PNG o WebP. Máx 2 MB. Para mejor rendimiento, comprimilo en{" "}
+                        JPG, PNG o WebP. Máx 10 MB. Para mejor rendimiento, comprimilo en{" "}
                         <a
                             href="https://squoosh.app"
                             target="_blank"

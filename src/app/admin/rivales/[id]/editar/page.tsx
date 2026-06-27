@@ -3,13 +3,14 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getRival } from "@/lib/data";
 import { editarRival, eliminarRival } from "../../actions";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
 
 const ERRORES: Record<string, string> = {
     campos: "El nombre es obligatorio.",
-    escudo_grande: "El escudo pesa más de 2 MB.",
+    escudo_grande: "El escudo pesa más de 10 MB.",
     escudo_tipo: "El escudo debe ser JPG, PNG o WebP.",
 };
 
@@ -99,14 +100,12 @@ export default async function EditarRivalPage({
                             </label>
                         </div>
                     )}
-                    <input
-                        type="file"
+                    <ImageUploadField
                         name="escudo"
-                        accept="image/jpeg,image/png,image/webp"
-                        className={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
+                        inputClassName={`${inputCls} file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-neutral-800 file:text-neutral-100 file:text-xs file:cursor-pointer`}
                     />
                     <span className="text-xs text-neutral-500 mt-1 block">
-                        Subí uno nuevo para reemplazar. Máx 2 MB.
+                        Subí uno nuevo para reemplazar. Máx 10 MB.
                     </span>
                 </Field>
                 <Field label="Notas tácticas">

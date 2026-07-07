@@ -113,6 +113,12 @@ export default async function FichaJugadorPage({
         </div>
         <div className="flex flex-col gap-2 text-sm">
           <Link
+            href={`/admin/jugadores/enlaces?jugadorId=${jugador.id}`}
+            className="text-emerald-400 hover:text-emerald-300"
+          >
+            Generar enlace →
+          </Link>
+          <Link
             href={`/admin/jugadores/${jugador.id}/editar`}
             className="text-orange-400 hover:text-orange-300"
           >

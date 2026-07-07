@@ -64,12 +64,20 @@ export default async function JugadoresPage({
                         {contadores.todos} en total
                     </p>
                 </div>
-                <Link
-                    href="/admin/jugadores/nuevo"
-                    className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-medium text-sm"
-                >
-                    + Nuevo jugador
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/admin/jugadores/enlaces"
+                        className="px-4 py-2 rounded-lg border border-neutral-800 hover:bg-neutral-900 text-sm"
+                    >
+                        Enlaces
+                    </Link>
+                    <Link
+                        href="/admin/jugadores/nuevo"
+                        className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-medium text-sm"
+                    >
+                        + Nuevo jugador
+                    </Link>
+                </div>
             </header>
 
             <nav className="flex gap-1 border-b border-neutral-800">
@@ -166,7 +174,9 @@ export default async function JugadoresPage({
                                                     )}
                                                 </div>
                                                 {j.apodo && (
-                                                    <p className="text-xs text-neutral-500">"{j.apodo}"</p>
+                                                    <p className="text-xs text-neutral-500">
+                                                        &quot;{j.apodo}&quot;
+                                                    </p>
                                                 )}
                                             </div>
                                         </div>

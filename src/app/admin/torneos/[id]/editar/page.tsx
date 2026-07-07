@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRivales, getTorneo } from "@/lib/data";
+import { getJugadores, getRivales, getTorneo, getTorneos } from "@/lib/data";
 import { editarTorneo, eliminarTorneo } from "../../actions";
+import { PlantillaTorneo } from "../../_components/PlantillaTorneo";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -15,11 +16,18 @@ export default async function EditarTorneoPage({
 }) {
     const { id } = await params;
     const { error } = await searchParams;
-    const [torneo, rivales] = await Promise.all([
+    const [torneo, rivales, jugadores, todosTorneos] = await Promise.all([
         getTorneo(id),
         getRivales(),
+        getJugadores(),
+        getTorneos(),
     ]);
     if (!torneo) notFound();
+
+    const jugadoresActivos = jugadores.filter(
+        (j) => j.activo || torneo.jugadoresIds.includes(j.id),
+    );
+    const otrosTorneos = todosTorneos.filter((t) => t.id !== torneo.id);
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -165,6 +173,18 @@ export default async function EditarTorneoPage({
                             ))}
                         </div>
                     )}
+                </Seccion>
+
+                <Seccion titulo="Plantilla del club en este torneo">
+                    <p className="md:col-span-2 text-xs text-neutral-500 -mt-2">
+                        Elegí qué jugadores participan en este torneo. Podés copiar la
+                        plantilla de otro torneo si repiten jugadores.
+                    </p>
+                    <PlantillaTorneo
+                        jugadores={jugadoresActivos}
+                        torneosExistentes={otrosTorneos}
+                        seleccionInicial={torneo.jugadoresIds}
+                    />
                 </Seccion>
 
                 <Seccion titulo="Resultado del club">

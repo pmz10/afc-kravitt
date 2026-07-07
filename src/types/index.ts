@@ -84,6 +84,7 @@ export interface Torneo {
   sede?: string;
   organizador?: string;
   participantes: string[];   // ids de Rival
+  jugadoresIds: string[];    // plantilla del club para este torneo (ids de Jugador)
   posicionFinal?: number;
   faseAlcanzada?: string;
   resumen?: string;

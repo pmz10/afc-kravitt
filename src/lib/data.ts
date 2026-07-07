@@ -120,6 +120,7 @@ type TorneoRow = {
   fase_alcanzada: string | null;
   resumen: string | null;
   torneo_participantes?: { rival_id: string }[];
+  torneo_jugadores?: { jugador_id: string }[];
 };
 
 type PartidoRow = {
@@ -554,6 +555,7 @@ function torneoFromRow(row: TorneoRow): Torneo {
     sede: optional(row.sede),
     organizador: optional(row.organizador),
     participantes: (row.torneo_participantes ?? []).map((item) => item.rival_id),
+    jugadoresIds: (row.torneo_jugadores ?? []).map((item) => item.jugador_id),
     posicionFinal: optional(row.posicion_final),
     faseAlcanzada: optional(row.fase_alcanzada),
     resumen: optional(row.resumen),
@@ -564,7 +566,7 @@ export async function getTorneos(): Promise<Torneo[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
     .order("temporada", { ascending: false });
   if (error) fail("leer torneos", error);
   return (data as TorneoRow[]).map(torneoFromRow);
@@ -574,7 +576,7 @@ export async function getTorneo(id: string): Promise<Torneo | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) fail("leer torneo", error);
@@ -614,6 +616,15 @@ export async function upsertTorneo(torneo: Torneo): Promise<Torneo> {
     torneo.participantes.map((rivalId) => ({
       torneo_id: torneo.id,
       rival_id: rivalId,
+    })),
+  );
+  await replaceRelated(
+    "torneo_jugadores",
+    "torneo_id",
+    torneo.id,
+    torneo.jugadoresIds.map((jugadorId) => ({
+      torneo_id: torneo.id,
+      jugador_id: jugadorId,
     })),
   );
   return torneo;

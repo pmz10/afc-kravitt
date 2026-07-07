@@ -6,6 +6,7 @@ import type {
     Torneo,
 } from "@/types";
 import { EventosEditor } from "./EventosEditor";
+import { CargarPlantillaBoton } from "./CargarPlantillaBoton";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -166,6 +167,7 @@ export function PartidoForm({
 
             {/* ───── Convocatoria ───── */}
             <Seccion titulo="Convocatoria">
+                <CargarPlantillaBoton torneos={torneos} />
                 {jugadoresActivos.length === 0 ? (
                     <p className="text-sm text-neutral-500 md:col-span-2">
                         No hay jugadores activos para convocar.

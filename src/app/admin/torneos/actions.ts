@@ -63,6 +63,10 @@ function construirTorneo(formData: FormData, id: string): Torneo | null {
         .getAll("participantes")
         .filter((v): v is string => typeof v === "string");
 
+    const jugadoresIds = formData
+        .getAll("jugadoresIds")
+        .filter((v): v is string => typeof v === "string");
+
     return {
         id,
         nombre,
@@ -75,6 +79,7 @@ function construirTorneo(formData: FormData, id: string): Torneo | null {
         sede: readStr(formData, "sede"),
         organizador: readStr(formData, "organizador"),
         participantes,
+        jugadoresIds,
         posicionFinal: readInt(formData.get("posicionFinal")),
         faseAlcanzada: readStr(formData, "faseAlcanzada"),
         resumen: readStr(formData, "resumen"),

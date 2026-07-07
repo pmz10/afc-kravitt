@@ -136,11 +136,15 @@ export default async function FichaJugadorPage({
       {/* Stats totales */}
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <Stat label="Partidos" valor={total.partidosJugados} />
+        <Stat label="Titular" valor={total.titularidades} />
         <Stat label="Goles" valor={total.goles} />
         <Stat label="Asistencias" valor={total.asistencias} />
         <Stat label="Amarillas" valor={total.amarillas} color="amber" />
         <Stat label="Rojas" valor={total.rojas} color="red" />
         <Stat label="MVPs" valor={mvps} color="orange" />
+        <Stat label="Atajadas" valor={total.atajadas} />
+        <Stat label="Faltas" valor={total.faltas} />
+        <Stat label="Lesiones" valor={total.lesiones} />
       </section>
 
       {/* Desglose por torneo */}

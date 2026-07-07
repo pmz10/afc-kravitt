@@ -3,30 +3,12 @@ import type {
     JugadorRival,
     Partido,
     Rival,
-    TipoEvento,
     Torneo,
 } from "@/types";
+import { EventosEditor } from "./EventosEditor";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
-
-const TIPOS_EVENTO: { value: TipoEvento; label: string; bando: "prop" | "riv" }[] = [
-    { value: "gol", label: "Gol (nosotros)", bando: "prop" },
-    { value: "asistencia", label: "Asistencia (nosotros)", bando: "prop" },
-    { value: "amarilla", label: "Amarilla (nosotros)", bando: "prop" },
-    { value: "roja", label: "Roja (nosotros)", bando: "prop" },
-    { value: "autogol", label: "Autogol (nosotros)", bando: "prop" },
-    { value: "penal_anotado", label: "Penal anotado (nosotros)", bando: "prop" },
-    { value: "penal_fallado", label: "Penal fallado (nosotros)", bando: "prop" },
-    { value: "gol_rival", label: "Gol (rival)", bando: "riv" },
-    { value: "asistencia_rival", label: "Asistencia (rival)", bando: "riv" },
-    { value: "amarilla_rival", label: "Amarilla (rival)", bando: "riv" },
-    { value: "roja_rival", label: "Roja (rival)", bando: "riv" },
-    { value: "penal_anotado_rival", label: "Penal anotado (rival)", bando: "riv" },
-    { value: "penal_fallado_rival", label: "Penal fallado (rival)", bando: "riv" },
-];
-
-const FILAS_EVENTO = 12; // cantidad de filas vacías que renderizamos en el form
 
 export interface PartidoFormProps {
     action: (formData: FormData) => void | Promise<void>;
@@ -193,23 +175,34 @@ export function PartidoForm({
                         {jugadoresActivos
                             .sort((a, b) => a.dorsal - b.dorsal)
                             .map((j) => (
-                                <label
+                                <div
                                     key={j.id}
                                     className="flex items-center gap-2 text-sm px-2 py-1.5 rounded-md hover:bg-neutral-900"
                                 >
-                                    <input
-                                        type="checkbox"
-                                        name="convocados"
-                                        value={j.id}
-                                        defaultChecked={partido?.convocados.includes(j.id) ?? false}
-                                    />
-                                    <span className="font-mono text-xs text-neutral-500 w-6">
-                                        {j.dorsal}
-                                    </span>
-                                    <span className="truncate">
-                                        {j.nombre} {j.apellido}
-                                    </span>
-                                </label>
+                                    <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="convocados"
+                                            value={j.id}
+                                            defaultChecked={partido?.convocados.includes(j.id) ?? false}
+                                        />
+                                        <span className="font-mono text-xs text-neutral-500 w-6">
+                                            {j.dorsal}
+                                        </span>
+                                        <span className="truncate">
+                                            {j.nombre} {j.apellido}
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs text-neutral-500 shrink-0 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="titulares"
+                                            value={j.id}
+                                            defaultChecked={partido?.titulares.includes(j.id) ?? false}
+                                        />
+                                        Titular
+                                    </label>
+                                </div>
                             ))}
                     </div>
                 )}
@@ -234,86 +227,18 @@ export function PartidoForm({
             </Seccion>
 
             {/* ───── Eventos ───── */}
-            <Seccion titulo={`Eventos del partido (hasta ${FILAS_EVENTO} entradas)`}>
+            <Seccion titulo="Eventos del partido">
                 <p className="md:col-span-2 text-xs text-neutral-500 -mt-2">
-                    Cargá goles, asistencias, tarjetas y penales. Las filas vacías se
-                    ignoran. Si el rival metió gol, elegí "Gol (rival)" + el jugador rival
-                    (si está cargado en la ficha del rival).
+                    Sumá goles, asistencias, tarjetas y penales directamente en la
+                    tarjeta de cada jugador. No hay límite de cantidad por jugador.
                 </p>
-                <div className="md:col-span-2 space-y-2">
-                    {Array.from({ length: FILAS_EVENTO }).map((_, i) => {
-                        const ev = eventos[i];
-                        const valorJugador = ev
-                            ? "jugadorId" in ev
-                                ? `prop:${ev.jugadorId}`
-                                : `riv:${ev.jugadorRivalId}`
-                            : "";
-                        return (
-                            <div
-                                key={i}
-                                className="grid grid-cols-12 gap-2 items-center text-sm"
-                            >
-                                <select
-                                    name={`evento_${i}_tipo`}
-                                    defaultValue={ev?.tipo ?? ""}
-                                    className={`${inputCls} col-span-4`}
-                                >
-                                    <option value="">— tipo —</option>
-                                    {TIPOS_EVENTO.map((t) => (
-                                        <option key={t.value} value={t.value}>
-                                            {t.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    name={`evento_${i}_jugador`}
-                                    defaultValue={valorJugador}
-                                    className={`${inputCls} col-span-5`}
-                                >
-                                    <option value="">— jugador —</option>
-                                    <optgroup label="Nuestros">
-                                        {jugadoresActivos.map((j) => (
-                                            <option key={j.id} value={`prop:${j.id}`}>
-                                                #{j.dorsal} {j.nombre} {j.apellido}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                    <optgroup label="Rivales conocidos">
-                                        {jugadoresRivales.map((jr) => {
-                                            const rival = rivales.find((r) => r.id === jr.rivalId);
-                                            const etiqueta = [
-                                                jr.dorsal ? `#${jr.dorsal}` : null,
-                                                jr.nombre ?? jr.apodo ?? "Sin nombre",
-                                                rival ? `(${rival.nombre})` : null,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(" ");
-                                            return (
-                                                <option key={jr.id} value={`riv:${jr.id}`}>
-                                                    {etiqueta}
-                                                </option>
-                                            );
-                                        })}
-                                    </optgroup>
-                                </select>
-                                <input
-                                    type="number"
-                                    name={`evento_${i}_minuto`}
-                                    min={0}
-                                    max={120}
-                                    placeholder="min"
-                                    defaultValue={ev?.minuto ?? ""}
-                                    className={`${inputCls} col-span-1`}
-                                />
-                                <input
-                                    name={`evento_${i}_notas`}
-                                    placeholder="notas"
-                                    defaultValue={ev?.notas ?? ""}
-                                    className={`${inputCls} col-span-2`}
-                                />
-                            </div>
-                        );
-                    })}
+                <div className="md:col-span-2">
+                    <EventosEditor
+                        jugadoresActivos={jugadoresActivos}
+                        jugadoresRivales={jugadoresRivales}
+                        rivales={rivales}
+                        eventosIniciales={eventos}
+                    />
                 </div>
             </Seccion>
 

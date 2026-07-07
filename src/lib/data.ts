@@ -137,7 +137,7 @@ type PartidoRow = {
   penales_contra: number | null;
   notas: string | null;
   mvp_id: string | null;
-  partido_convocados?: { jugador_id: string }[];
+  partido_convocados?: { jugador_id: string; titular: boolean | null }[];
   partido_eventos?: {
     id: string;
     tipo: EventoPartido["tipo"];
@@ -645,7 +645,7 @@ function eventoFromRow(
   return {
     ...base,
     tipo: row.tipo as TipoEventoRival,
-    jugadorRivalId: row.jugador_rival_id!,
+    ...(row.jugador_rival_id ? { jugadorRivalId: row.jugador_rival_id } : {}),
   };
 }
 
@@ -668,6 +668,9 @@ function partidoFromRow(row: PartidoRow): Partido {
       ? { favor: row.penales_favor!, contra: row.penales_contra! }
       : undefined,
     convocados: (row.partido_convocados ?? []).map((item) => item.jugador_id),
+    titulares: (row.partido_convocados ?? [])
+      .filter((item) => item.titular)
+      .map((item) => item.jugador_id),
     eventos: (row.partido_eventos ?? []).map(eventoFromRow),
     notas: optional(row.notas),
     mvpId: optional(row.mvp_id),
@@ -675,7 +678,7 @@ function partidoFromRow(row: PartidoRow): Partido {
 }
 
 const PARTIDO_SELECT =
-  "*, partido_convocados(jugador_id), partido_eventos(id, tipo, jugador_id, jugador_rival_id, minuto, notas)";
+  "*, partido_convocados(jugador_id, titular), partido_eventos(id, tipo, jugador_id, jugador_rival_id, minuto, notas)";
 
 export async function getPartidos(): Promise<Partido[]> {
   const supabase = await createClient();
@@ -780,6 +783,7 @@ export async function upsertPartido(partido: Partido): Promise<Partido> {
     partido.convocados.map((jugadorId) => ({
       partido_id: partido.id,
       jugador_id: jugadorId,
+      titular: partido.titulares.includes(jugadorId),
     })),
   );
   await replaceRelated(
@@ -792,7 +796,7 @@ export async function upsertPartido(partido: Partido): Promise<Partido> {
       tipo: evento.tipo,
       jugador_id: "jugadorId" in evento ? evento.jugadorId : null,
       jugador_rival_id:
-        "jugadorRivalId" in evento ? evento.jugadorRivalId : null,
+        "jugadorRivalId" in evento ? (evento.jugadorRivalId ?? null) : null,
       minuto: evento.minuto ?? null,
       notas: evento.notas ?? null,
     })),

@@ -32,9 +32,13 @@ const TIPOS_PROPIOS: TipoEventoPropio[] = [
     "asistencia",
     "amarilla",
     "roja",
+    "doble_amarilla",
     "autogol",
     "penal_anotado",
     "penal_fallado",
+    "atajada",
+    "falta",
+    "lesion",
 ];
 
 const TIPOS_RIVAL: TipoEventoRival[] = [
@@ -42,8 +46,11 @@ const TIPOS_RIVAL: TipoEventoRival[] = [
     "asistencia_rival",
     "amarilla_rival",
     "roja_rival",
+    "doble_amarilla_rival",
     "penal_anotado_rival",
     "penal_fallado_rival",
+    "atajada_rival",
+    "falta_rival",
 ];
 
 const TIPOS_VALIDOS: TipoEvento[] = [...TIPOS_PROPIOS, ...TIPOS_RIVAL];
@@ -68,52 +75,56 @@ function readResultado(v: FormDataEntryValue | null): ResultadoPartido {
     return "pendiente";
 }
 
-// Lee hasta MAX_EVENTOS filas del form (evento_0_*, evento_1_*, ...).
-// Una fila vacía (sin jugador seleccionado) se descarta.
-const MAX_EVENTOS = 20;
-
+// El form manda un único campo "eventosJson" (armado por <EventosEditor>)
+// con un array de eventos sin límite de cantidad.
 function parsearEventos(formData: FormData): EventoPartido[] {
+    const raw = formData.get("eventosJson");
+    if (typeof raw !== "string" || !raw.trim()) return [];
+
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        return [];
+    }
+    if (!Array.isArray(parsed)) return [];
+
     const out: EventoPartido[] = [];
-    for (let i = 0; i < MAX_EVENTOS; i++) {
-        const tipoRaw = formData.get(`evento_${i}_tipo`);
-        const jugadorRaw = formData.get(`evento_${i}_jugador`);
-        if (typeof tipoRaw !== "string" || typeof jugadorRaw !== "string") continue;
-        if (!tipoRaw || !jugadorRaw) continue;
+    for (const item of parsed) {
+        if (!item || typeof item !== "object") continue;
+        const { tipo, jugadorId, jugadorRivalId, minuto, notas } = item as Record<
+            string,
+            unknown
+        >;
+        if (typeof tipo !== "string" || !TIPOS_VALIDOS.includes(tipo as TipoEvento)) {
+            continue;
+        }
 
-        const tipo = TIPOS_VALIDOS.includes(tipoRaw as TipoEvento)
-            ? (tipoRaw as TipoEvento)
-            : null;
-        if (!tipo) continue;
+        const minutoNum =
+            typeof minuto === "number" && Number.isFinite(minuto) ? minuto : undefined;
+        const notasStr =
+            typeof notas === "string" && notas.trim() ? notas.trim() : undefined;
 
-        // El select usa prefijos "prop:" o "riv:" para distinguir
-        const [prefix, id] = jugadorRaw.split(":");
-        if (!id) continue;
-
-        const minuto = readInt(formData.get(`evento_${i}_minuto`));
-        const notas = readStr(formData, `evento_${i}_notas`);
-
-        if (TIPOS_PROPIOS.includes(tipo as TipoEventoPropio) && prefix === "prop") {
+        if (TIPOS_PROPIOS.includes(tipo as TipoEventoPropio)) {
+            if (typeof jugadorId !== "string" || !jugadorId) continue;
             out.push({
                 id: generateId("ev"),
                 tipo: tipo as TipoEventoPropio,
-                jugadorId: id,
-                minuto,
-                notas,
+                jugadorId,
+                minuto: minutoNum,
+                notas: notasStr,
             });
-        } else if (
-            TIPOS_RIVAL.includes(tipo as TipoEventoRival) &&
-            prefix === "riv"
-        ) {
+        } else if (TIPOS_RIVAL.includes(tipo as TipoEventoRival)) {
             out.push({
                 id: generateId("ev"),
                 tipo: tipo as TipoEventoRival,
-                jugadorRivalId: id,
-                minuto,
-                notas,
+                ...(typeof jugadorRivalId === "string" && jugadorRivalId
+                    ? { jugadorRivalId }
+                    : {}),
+                minuto: minutoNum,
+                notas: notasStr,
             });
         }
-        // Si el prefijo y el tipo no concuerdan (ej. tipo propio con jugador rival),
-        // ignoramos esa fila silenciosamente.
     }
     return out;
 }
@@ -127,6 +138,11 @@ function construirPartido(formData: FormData, id: string): Partido | null {
     const convocados = formData
         .getAll("convocados")
         .filter((v): v is string => typeof v === "string");
+
+    const titularesForm = formData
+        .getAll("titulares")
+        .filter((v): v is string => typeof v === "string");
+    const titulares = titularesForm.filter((id) => convocados.includes(id));
 
     const golesFavor = readInt(formData.get("golesFavor"));
     const golesContra = readInt(formData.get("golesContra"));
@@ -150,6 +166,7 @@ function construirPartido(formData: FormData, id: string): Partido | null {
             ? { favor: penalesFavor, contra: penalesContra }
             : undefined,
         convocados,
+        titulares,
         eventos: parsearEventos(formData),
         notas: readStr(formData, "notas"),
         mvpId: readStr(formData, "mvpId"),

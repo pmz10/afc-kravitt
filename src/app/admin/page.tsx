@@ -558,37 +558,92 @@ export default async function DashboardPage() {
                 )}
             </section>
 
-            {/* Torneo en curso */}
-            {torneoEnCurso && (
-                <section className="space-y-3">
-                    <h2 className="text-sm uppercase tracking-widest text-neutral-500">
-                        Torneo en curso
-                    </h2>
+            {/* Resumen por torneo */}
+            <section className="space-y-3">
+                <h2 className="text-sm uppercase tracking-widest text-neutral-500">
+                    Resumen por torneo
+                </h2>
 
-                    <Link
-                        href={`/admin/torneos/${torneoEnCurso.id}/editar`}
-                        className="block rounded-xl border border-orange-500/30 bg-orange-500/5 p-5 transition hover:bg-orange-500/10"
-                    >
-                        <p className="font-semibold">
-                            {torneoEnCurso.nombre}
-                        </p>
+                {torneos.length === 0 ? (
+                    <p className="text-sm text-neutral-500">
+                        Aún no hay torneos cargados.
+                    </p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {torneos.map((t) => {
+                            const partidosTorneo = partidosJugados.filter(
+                                (p) => p.torneoId === t.id,
+                            );
 
-                        <p className="mt-1 text-xs text-neutral-400">
-                            {torneoEnCurso.temporada} ·{" "}
-                            {torneoEnCurso.categoria} ·{" "}
-                            {torneoEnCurso.participantes.length}{" "}
-                            equipos
-                        </p>
+                            let g = 0;
+                            let e = 0;
+                            let pd = 0;
+                            let gf = 0;
+                            let gc = 0;
 
-                        {torneoEnCurso.faseAlcanzada && (
-                            <p className="mt-2 text-xs text-orange-300">
-                                Fase actual:{" "}
-                                {torneoEnCurso.faseAlcanzada}
-                            </p>
-                        )}
-                    </Link>
-                </section>
-            )}
+                            for (const p of partidosTorneo) {
+                                const c = clasificar(p);
+                                if (c === "G") g++;
+                                else if (c === "E") e++;
+                                else if (c === "P") pd++;
+                                if (p.golesFavor !== undefined) gf += p.golesFavor;
+                                if (p.golesContra !== undefined) gc += p.golesContra;
+                            }
+
+                            return (
+                                <Link
+                                    key={t.id}
+                                    href={`/admin/torneos/${t.id}/editar`}
+                                    className={`block rounded-xl border p-4 transition hover:bg-neutral-900 ${
+                                        t.estado === "en_curso"
+                                            ? "border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10"
+                                            : "border-neutral-800 bg-neutral-900/50"
+                                    }`}
+                                >
+                                    <p className="font-semibold truncate">
+                                        {t.nombre}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-neutral-400">
+                                        {t.temporada} · {t.categoria} ·{" "}
+                                        {t.jugadoresIds.length} jugadores
+                                    </p>
+
+                                    {partidosTorneo.length === 0 ? (
+                                        <p className="mt-3 text-xs text-neutral-600">
+                                            Sin partidos jugados aún.
+                                        </p>
+                                    ) : (
+                                        <div className="mt-3 flex items-center gap-3 text-sm">
+                                            <span className="text-emerald-300">
+                                                {g}G
+                                            </span>
+                                            <span className="text-amber-300">
+                                                {e}E
+                                            </span>
+                                            <span className="text-red-300">
+                                                {pd}P
+                                            </span>
+                                            <span className="text-neutral-700">
+                                                ·
+                                            </span>
+                                            <span className="text-neutral-300">
+                                                {gf}-{gc}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {t.faseAlcanzada && (
+                                        <p className="mt-2 text-xs text-orange-300">
+                                            Fase actual: {t.faseAlcanzada}
+                                        </p>
+                                    )}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

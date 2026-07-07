@@ -506,6 +506,7 @@ export function StatsHighlightScroll({
     }
 
     let animationFrame: number | null = null;
+    let isNear = false;
 
     let animationStart = 0;
     let animationDistance = 1;
@@ -561,6 +562,10 @@ export function StatsHighlightScroll({
     };
 
     const requestTimelineUpdate = () => {
+      if (!isNear) {
+        return;
+      }
+
       if (animationFrame !== null) {
         return;
       }
@@ -571,12 +576,30 @@ export function StatsHighlightScroll({
         );
     };
 
+    /*
+     * Observer de proximidad: el scroll listener corre, pero la
+     * callback retorna early si la sección no está cerca del viewport.
+     */
+    const proximityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isNear = entry.isIntersecting;
+        if (isNear) {
+          requestTimelineUpdate();
+        }
+      },
+      {
+        rootMargin: "150% 0px 150% 0px",
+      },
+    );
+    proximityObserver.observe(section);
+
     const handleResize = () => {
       measureSection();
       requestTimelineUpdate();
     };
 
     measureSection();
+    isNear = true;
     updateTimeline();
 
     window.addEventListener(
@@ -602,6 +625,8 @@ export function StatsHighlightScroll({
         "resize",
         handleResize,
       );
+
+      proximityObserver.disconnect();
 
       if (animationFrame !== null) {
         window.cancelAnimationFrame(
@@ -645,7 +670,7 @@ export function StatsHighlightScroll({
     <section
       ref={sectionRef}
       id="estadisticas-destacadas"
-      className={`relative -mt-px min-h-[100svh] lg:h-[250vh] ${className}`}
+      className={`relative -mt-px min-h-[100svh] lg:h-[180vh] ${className}`}
     >
       <div
         ref={stageRef}

@@ -15,32 +15,44 @@ import { estaActivoEn } from "@/lib/utils";
 
 const STATS_VACIAS: StatsAgregadas = {
     partidosJugados: 0,
+    titularidades: 0,
     goles: 0,
     asistencias: 0,
     amarillas: 0,
     rojas: 0,
     autogoles: 0,
+    atajadas: 0,
+    faltas: 0,
+    lesiones: 0,
 };
 
 function aggDeCarry(carry: StatsCarryOver): StatsAgregadas {
     return {
         partidosJugados: carry.partidosJugados,
+        titularidades: 0,
         goles: carry.goles,
         asistencias: carry.asistencias,
         amarillas: carry.amarillas,
         rojas: carry.rojas,
         autogoles: 0,
+        atajadas: 0,
+        faltas: 0,
+        lesiones: 0,
     };
 }
 
 function sumar(a: StatsAgregadas, b: StatsAgregadas): StatsAgregadas {
     return {
         partidosJugados: a.partidosJugados + b.partidosJugados,
+        titularidades: a.titularidades + b.titularidades,
         goles: a.goles + b.goles,
         asistencias: a.asistencias + b.asistencias,
         amarillas: a.amarillas + b.amarillas,
         rojas: a.rojas + b.rojas,
         autogoles: a.autogoles + b.autogoles,
+        atajadas: a.atajadas + b.atajadas,
+        faltas: a.faltas + b.faltas,
+        lesiones: a.lesiones + b.lesiones,
     };
 }
 
@@ -53,6 +65,7 @@ function statsDePartidos(
     for (const p of partidos) {
         if (p.resultado === "pendiente") continue;
         if (p.convocados.includes(jugadorId)) s.partidosJugados += 1;
+        if (p.titulares.includes(jugadorId)) s.titularidades += 1;
         for (const ev of p.eventos) {
             if (!("jugadorId" in ev) || ev.jugadorId !== jugadorId) continue;
             switch (ev.tipo) {
@@ -67,10 +80,20 @@ function statsDePartidos(
                     s.amarillas += 1;
                     break;
                 case "roja":
+                case "doble_amarilla":
                     s.rojas += 1;
                     break;
                 case "autogol":
                     s.autogoles += 1;
+                    break;
+                case "atajada":
+                    s.atajadas += 1;
+                    break;
+                case "falta":
+                    s.faltas += 1;
+                    break;
+                case "lesion":
+                    s.lesiones += 1;
                     break;
                 // penal_fallado no afecta el conteo de goles
             }
@@ -312,12 +335,16 @@ export function getTopGoleadoresDelRival(
 
     for (const p of partidosVs) {
         for (const ev of p.eventos) {
-            if (!("jugadorRivalId" in ev)) continue;
+            if (!("jugadorRivalId" in ev) || !ev.jugadorRivalId) continue;
             const cur = stats.get(ev.jugadorRivalId) ?? { goles: 0, tarjetas: 0 };
             if (ev.tipo === "gol_rival" || ev.tipo === "penal_anotado_rival") {
                 cur.goles++;
             }
-            if (ev.tipo === "amarilla_rival" || ev.tipo === "roja_rival") {
+            if (
+                ev.tipo === "amarilla_rival" ||
+                ev.tipo === "roja_rival" ||
+                ev.tipo === "doble_amarilla_rival"
+            ) {
                 cur.tarjetas++;
             }
             stats.set(ev.jugadorRivalId, cur);

@@ -120,6 +120,7 @@ type TorneoRow = {
   fase_alcanzada: string | null;
   resumen: string | null;
   torneo_participantes?: { rival_id: string }[];
+  torneo_jugadores?: { jugador_id: string }[];
 };
 
 type PartidoRow = {
@@ -137,7 +138,7 @@ type PartidoRow = {
   penales_contra: number | null;
   notas: string | null;
   mvp_id: string | null;
-  partido_convocados?: { jugador_id: string }[];
+  partido_convocados?: { jugador_id: string; titular: boolean | null }[];
   partido_eventos?: {
     id: string;
     tipo: EventoPartido["tipo"];
@@ -554,6 +555,7 @@ function torneoFromRow(row: TorneoRow): Torneo {
     sede: optional(row.sede),
     organizador: optional(row.organizador),
     participantes: (row.torneo_participantes ?? []).map((item) => item.rival_id),
+    jugadoresIds: (row.torneo_jugadores ?? []).map((item) => item.jugador_id),
     posicionFinal: optional(row.posicion_final),
     faseAlcanzada: optional(row.fase_alcanzada),
     resumen: optional(row.resumen),
@@ -564,7 +566,7 @@ export async function getTorneos(): Promise<Torneo[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
     .order("temporada", { ascending: false });
   if (error) fail("leer torneos", error);
   return (data as TorneoRow[]).map(torneoFromRow);
@@ -574,7 +576,7 @@ export async function getTorneo(id: string): Promise<Torneo | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) fail("leer torneo", error);
@@ -616,6 +618,15 @@ export async function upsertTorneo(torneo: Torneo): Promise<Torneo> {
       rival_id: rivalId,
     })),
   );
+  await replaceRelated(
+    "torneo_jugadores",
+    "torneo_id",
+    torneo.id,
+    torneo.jugadoresIds.map((jugadorId) => ({
+      torneo_id: torneo.id,
+      jugador_id: jugadorId,
+    })),
+  );
   return torneo;
 }
 
@@ -645,7 +656,7 @@ function eventoFromRow(
   return {
     ...base,
     tipo: row.tipo as TipoEventoRival,
-    jugadorRivalId: row.jugador_rival_id!,
+    ...(row.jugador_rival_id ? { jugadorRivalId: row.jugador_rival_id } : {}),
   };
 }
 
@@ -668,6 +679,9 @@ function partidoFromRow(row: PartidoRow): Partido {
       ? { favor: row.penales_favor!, contra: row.penales_contra! }
       : undefined,
     convocados: (row.partido_convocados ?? []).map((item) => item.jugador_id),
+    titulares: (row.partido_convocados ?? [])
+      .filter((item) => item.titular)
+      .map((item) => item.jugador_id),
     eventos: (row.partido_eventos ?? []).map(eventoFromRow),
     notas: optional(row.notas),
     mvpId: optional(row.mvp_id),
@@ -675,7 +689,7 @@ function partidoFromRow(row: PartidoRow): Partido {
 }
 
 const PARTIDO_SELECT =
-  "*, partido_convocados(jugador_id), partido_eventos(id, tipo, jugador_id, jugador_rival_id, minuto, notas)";
+  "*, partido_convocados(jugador_id, titular), partido_eventos(id, tipo, jugador_id, jugador_rival_id, minuto, notas)";
 
 export async function getPartidos(): Promise<Partido[]> {
   const supabase = await createClient();
@@ -780,6 +794,7 @@ export async function upsertPartido(partido: Partido): Promise<Partido> {
     partido.convocados.map((jugadorId) => ({
       partido_id: partido.id,
       jugador_id: jugadorId,
+      titular: partido.titulares.includes(jugadorId),
     })),
   );
   await replaceRelated(
@@ -792,7 +807,7 @@ export async function upsertPartido(partido: Partido): Promise<Partido> {
       tipo: evento.tipo,
       jugador_id: "jugadorId" in evento ? evento.jugadorId : null,
       jugador_rival_id:
-        "jugadorRivalId" in evento ? evento.jugadorRivalId : null,
+        "jugadorRivalId" in evento ? (evento.jugadorRivalId ?? null) : null,
       minuto: evento.minuto ?? null,
       notas: evento.notas ?? null,
     })),

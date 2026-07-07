@@ -26,17 +26,24 @@ export type TipoEventoPropio =
   | "asistencia"
   | "amarilla"
   | "roja"
+  | "doble_amarilla"
   | "autogol"
   | "penal_anotado"
-  | "penal_fallado";
+  | "penal_fallado"
+  | "atajada"
+  | "falta"
+  | "lesion";
 
 export type TipoEventoRival =
   | "gol_rival"
   | "asistencia_rival"
   | "amarilla_rival"
   | "roja_rival"
+  | "doble_amarilla_rival"
   | "penal_anotado_rival"
-  | "penal_fallado_rival";
+  | "penal_fallado_rival"
+  | "atajada_rival"
+  | "falta_rival";
 
 export type TipoEvento = TipoEventoPropio | TipoEventoRival;
 
@@ -77,6 +84,7 @@ export interface Torneo {
   sede?: string;
   organizador?: string;
   participantes: string[];   // ids de Rival
+  jugadoresIds: string[];    // plantilla del club para este torneo (ids de Jugador)
   posicionFinal?: number;
   faseAlcanzada?: string;
   resumen?: string;
@@ -98,7 +106,7 @@ export type EventoPartido =
   | {
     id: string;
     tipo: TipoEventoRival;
-    jugadorRivalId: string;
+    jugadorRivalId?: string; // ausente = autor no identificado
     minuto?: number;
     notas?: string;
   };
@@ -116,6 +124,7 @@ export interface Partido {
   golesContra?: number;
   penales?: { favor: number; contra: number };
   convocados: string[];      // ids de nuestros jugadores
+  titulares: string[];       // subconjunto de convocados que arrancó de titular
   eventos: EventoPartido[];
   notas?: string;
   mvpId?: string;
@@ -197,11 +206,15 @@ export interface Jugador {
 // -----------------------------------------------------
 export interface StatsAgregadas {
   partidosJugados: number;
+  titularidades: number;
   goles: number;
   asistencias: number;
   amarillas: number;
   rojas: number;
   autogoles: number;
+  atajadas: number;
+  faltas: number;
+  lesiones: number;
 }
 
 // -----------------------------------------------------

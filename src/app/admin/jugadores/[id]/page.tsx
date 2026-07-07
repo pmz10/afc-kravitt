@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   getJugador,
   getPartidos,
+  getRivales,
   getTorneos,
 } from "@/lib/data";
 import {
@@ -18,7 +19,7 @@ import {
   eliminarCarryOverTorneo,
   eliminarHito,
 } from "../actions";
-import type { Posicion, TipoHito } from "@/types";
+import type { Posicion, TipoEventoPropio, TipoHito } from "@/types";
 
 const POSICION_LABEL: Record<Posicion, string> = {
   POR: "Portero",
@@ -44,16 +45,31 @@ const TIPO_HITO_LABEL: Record<TipoHito, string> = {
 const inputCls =
   "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
 
+const EVENTO_ABREV: Partial<Record<TipoEventoPropio, string>> = {
+  gol: "⚽",
+  asistencia: "🅰️",
+  amarilla: "🟨",
+  roja: "🟥",
+  doble_amarilla: "🟨🟨",
+  autogol: "🔴",
+  penal_anotado: "⚽P",
+  penal_fallado: "❌P",
+  atajada: "🧤",
+  falta: "🚫",
+  lesion: "🩹",
+};
+
 export default async function FichaJugadorPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [jugador, partidos, torneos] = await Promise.all([
+  const [jugador, partidos, torneos, rivales] = await Promise.all([
     getJugador(id),
     getPartidos(),
     getTorneos(),
+    getRivales(),
   ]);
 
   if (!jugador) notFound();
@@ -63,6 +79,10 @@ export default async function FichaJugadorPage({
   const mvps = getMVPCount(jugador.id, partidos);
   const criterios = evaluarCriteriosLeyenda(jugador, partidos, torneos);
   const criteriosCumplidos = criterios.filter((c) => c.cumple).length;
+
+  const historial = partidos
+    .filter((p) => p.convocados.includes(jugador.id))
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -136,11 +156,15 @@ export default async function FichaJugadorPage({
       {/* Stats totales */}
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <Stat label="Partidos" valor={total.partidosJugados} />
+        <Stat label="Titular" valor={total.titularidades} />
         <Stat label="Goles" valor={total.goles} />
         <Stat label="Asistencias" valor={total.asistencias} />
         <Stat label="Amarillas" valor={total.amarillas} color="amber" />
         <Stat label="Rojas" valor={total.rojas} color="red" />
         <Stat label="MVPs" valor={mvps} color="orange" />
+        <Stat label="Atajadas" valor={total.atajadas} />
+        <Stat label="Faltas" valor={total.faltas} />
+        <Stat label="Lesiones" valor={total.lesiones} />
       </section>
 
       {/* Desglose por torneo */}
@@ -183,6 +207,88 @@ export default async function FichaJugadorPage({
                     <td className="text-right px-3 py-2">{stats.rojas}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Historial general de partidos */}
+      <section className="space-y-3">
+        <h2 className="text-sm uppercase tracking-widest text-neutral-500">
+          Historial general de partidos
+        </h2>
+        {historial.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            Aún no fue convocado a ningún partido.
+          </p>
+        ) : (
+          <div className="rounded-xl border border-neutral-800 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-900 text-neutral-400 text-xs uppercase tracking-wider">
+                <tr>
+                  <th className="text-left px-4 py-2">Fecha</th>
+                  <th className="text-left px-3 py-2">Torneo</th>
+                  <th className="text-left px-3 py-2">Rival</th>
+                  <th className="text-center px-3 py-2">Resultado</th>
+                  <th className="text-center px-3 py-2">Rol</th>
+                  <th className="text-left px-3 py-2">Eventos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historial.map((p) => {
+                  const rival = rivales.find((r) => r.id === p.rivalId);
+                  const torneo = torneos.find((t) => t.id === p.torneoId);
+                  const fecha = new Date(p.fecha).toLocaleDateString("es-MX", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+                  const marcador =
+                    p.golesFavor !== undefined && p.golesContra !== undefined
+                      ? p.esLocal
+                        ? `${p.golesFavor}-${p.golesContra}`
+                        : `${p.golesContra}-${p.golesFavor}`
+                      : "—";
+                  const eventosJugador = p.eventos.filter(
+                    (ev) => "jugadorId" in ev && ev.jugadorId === jugador.id,
+                  );
+                  return (
+                    <tr
+                      key={p.id}
+                      className="border-t border-neutral-800 hover:bg-neutral-900/50"
+                    >
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <Link
+                          href={`/admin/partidos/${p.id}/editar`}
+                          className="hover:text-orange-300"
+                        >
+                          {fecha}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 text-neutral-400">
+                        {torneo?.nombre ?? "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {p.esLocal ? "vs " : "@ "}
+                        {rival?.nombre ?? "—"}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {p.resultado === "pendiente" ? "Pendiente" : marcador}
+                      </td>
+                      <td className="px-3 py-2 text-center text-xs text-neutral-400">
+                        {p.titulares.includes(jugador.id) ? "Titular" : "Suplente"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-neutral-400">
+                        {eventosJugador.length === 0
+                          ? "—"
+                          : eventosJugador
+                              .map((ev) => EVENTO_ABREV[ev.tipo as TipoEventoPropio] ?? ev.tipo)
+                              .join(" ")}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

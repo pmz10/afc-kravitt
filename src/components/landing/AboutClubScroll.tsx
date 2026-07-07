@@ -301,6 +301,7 @@ export function AboutClubScroll({
       );
 
     let animationFrame: number | null = null;
+    let isNear = false;
 
     let animationStart = 0;
     let animationDistance = 1;
@@ -361,6 +362,10 @@ export function AboutClubScroll({
     };
 
     const requestTimelineUpdate = () => {
+      if (!isNear) {
+        return;
+      }
+
       if (animationFrame !== null) {
         return;
       }
@@ -371,12 +376,33 @@ export function AboutClubScroll({
         );
     };
 
+    /*
+     * Observer de proximidad: solo procesamos eventos de scroll
+     * cuando la sección está cerca del viewport. Reduce el costo
+     * de scroll cuando hay varias secciones scroll-driven en la página.
+     */
+    const proximityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isNear = entry.isIntersecting;
+        if (isNear) {
+          requestTimelineUpdate();
+        }
+      },
+      {
+        rootMargin: "150% 0px 150% 0px",
+      },
+    );
+    proximityObserver.observe(section);
+
     const handleResize = () => {
       measureSection();
       requestTimelineUpdate();
     };
 
     measureSection();
+    // Estado inicial: si la sección ya está cerca al montar, marcamos isNear=true
+    // para que el primer updateTimeline efectivamente corra.
+    isNear = true;
     updateTimeline();
 
     window.addEventListener(
@@ -403,6 +429,8 @@ export function AboutClubScroll({
         handleResize,
       );
 
+      proximityObserver.disconnect();
+
       if (animationFrame !== null) {
         window.cancelAnimationFrame(
           animationFrame,
@@ -428,7 +456,7 @@ export function AboutClubScroll({
     <section
       ref={sectionRef}
       id="about-club"
-      className={`relative -mt-px h-[220vh] ${className}`}
+      className={`relative -mt-px h-[160vh] ${className}`}
     >
       <div
         ref={stageRef}

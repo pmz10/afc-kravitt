@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { getRivales } from "@/lib/data";
+import { getJugadores, getRivales, getTorneos } from "@/lib/data";
 import { crearTorneo } from "../actions";
+import { PlantillaTorneo } from "../_components/PlantillaTorneo";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -11,7 +12,12 @@ export default async function NuevoTorneoPage({
     searchParams: Promise<{ error?: string }>;
 }) {
     const { error } = await searchParams;
-    const rivales = await getRivales();
+    const [rivales, jugadores, torneosExistentes] = await Promise.all([
+        getRivales(),
+        getJugadores(),
+        getTorneos(),
+    ]);
+    const jugadoresActivos = jugadores.filter((j) => j.activo);
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -143,6 +149,19 @@ export default async function NuevoTorneoPage({
                             ))}
                         </div>
                     )}
+                </Seccion>
+
+                <Seccion titulo="Plantilla del club en este torneo">
+                    <p className="md:col-span-2 text-xs text-neutral-500 -mt-2">
+                        Elegí qué jugadores participan en este torneo. Si ya tenías otro
+                        torneo con plantel similar (ej. otro de Fut7), podés copiarla en
+                        vez de recapturar uno por uno.
+                    </p>
+                    <PlantillaTorneo
+                        jugadores={jugadoresActivos}
+                        torneosExistentes={torneosExistentes}
+                        seleccionInicial={[]}
+                    />
                 </Seccion>
 
                 <Seccion titulo="Resultado del club (opcional)">

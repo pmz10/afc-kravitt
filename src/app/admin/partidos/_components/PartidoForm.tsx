@@ -6,8 +6,9 @@ import type {
     Torneo,
 } from "@/types";
 import { EventosEditor } from "./EventosEditor";
-import { CargarPlantillaBoton } from "./CargarPlantillaBoton";
 import { TorneoRivalSelect } from "./TorneoRivalSelect";
+import { ConvocatoriaSelector } from "./ConvocatoriaSelector";
+import { TorneoProvider } from "./TorneoContext";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -38,12 +39,13 @@ export function PartidoForm({
         <form action={action} className="space-y-8">
             {partido && <input type="hidden" name="id" value={partido.id} />}
 
+            <TorneoProvider defaultTorneoId={partido?.torneoId ?? ""}>
+
             {/* ───── Datos básicos ───── */}
             <Seccion titulo="Datos del partido">
                 <TorneoRivalSelect
                     torneos={torneos}
                     rivales={rivales}
-                    defaultTorneoId={partido?.torneoId ?? ""}
                     defaultRivalId={partido?.rivalId ?? ""}
                 />
                 <Field label="Jornada">
@@ -140,48 +142,19 @@ export function PartidoForm({
 
             {/* ───── Convocatoria ───── */}
             <Seccion titulo="Convocatoria">
-                <CargarPlantillaBoton torneos={torneos} />
-                {jugadoresActivos.length === 0 ? (
-                    <p className="text-sm text-neutral-500 md:col-span-2">
-                        No hay jugadores activos para convocar.
-                    </p>
-                ) : (
-                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto rounded-lg border border-neutral-800 p-3 bg-neutral-950">
-                        {jugadoresActivos
-                            .sort((a, b) => a.dorsal - b.dorsal)
-                            .map((j) => (
-                                <div
-                                    key={j.id}
-                                    className="flex items-center gap-2 text-sm px-2 py-1.5 rounded-md hover:bg-neutral-900"
-                                >
-                                    <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="convocados"
-                                            value={j.id}
-                                            defaultChecked={partido?.convocados.includes(j.id) ?? false}
-                                        />
-                                        <span className="font-mono text-xs text-neutral-500 w-6">
-                                            {j.dorsal}
-                                        </span>
-                                        <span className="truncate">
-                                            {j.nombre} {j.apellido}
-                                        </span>
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs text-neutral-500 shrink-0 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="titulares"
-                                            value={j.id}
-                                            defaultChecked={partido?.titulares.includes(j.id) ?? false}
-                                        />
-                                        Titular
-                                    </label>
-                                </div>
-                            ))}
-                    </div>
-                )}
+                <p className="md:col-span-2 text-xs text-neutral-500 -mt-2">
+                    Solo se muestran los jugadores de la plantilla del torneo elegido
+                    arriba.
+                </p>
+                <ConvocatoriaSelector
+                    jugadores={jugadoresActivos}
+                    torneos={torneos}
+                    convocadosIniciales={partido?.convocados ?? []}
+                    titularesIniciales={partido?.titulares ?? []}
+                />
             </Seccion>
+
+            </TorneoProvider>
 
             {/* ───── MVP ───── */}
             <Seccion titulo="MVP del partido (designación del admin)">

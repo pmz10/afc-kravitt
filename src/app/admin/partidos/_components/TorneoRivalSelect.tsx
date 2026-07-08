@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import type { Rival, Torneo } from "@/types";
+import { useTorneoSeleccionado } from "./TorneoContext";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -9,17 +9,15 @@ const inputCls =
 export interface TorneoRivalSelectProps {
     torneos: Torneo[];
     rivales: Rival[];
-    defaultTorneoId: string;
     defaultRivalId: string;
 }
 
 export function TorneoRivalSelect({
     torneos,
     rivales,
-    defaultTorneoId,
     defaultRivalId,
 }: TorneoRivalSelectProps) {
-    const [torneoId, setTorneoId] = useState(defaultTorneoId);
+    const { torneoId, setTorneoId } = useTorneoSeleccionado();
 
     const torneo = torneos.find((t) => t.id === torneoId);
     const idsDelTorneo = new Set(torneo?.participantes ?? []);

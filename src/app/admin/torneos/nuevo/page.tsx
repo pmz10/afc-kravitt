@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { getJugadores, getRivales, getTorneos } from "@/lib/data";
+import { getRivales } from "@/lib/data";
 import { crearTorneo } from "../actions";
-import { PlantillaTorneo } from "../_components/PlantillaTorneo";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -12,12 +11,7 @@ export default async function NuevoTorneoPage({
     searchParams: Promise<{ error?: string }>;
 }) {
     const { error } = await searchParams;
-    const [rivales, jugadores, torneosExistentes] = await Promise.all([
-        getRivales(),
-        getJugadores(),
-        getTorneos(),
-    ]);
-    const jugadoresActivos = jugadores.filter((j) => j.activo);
+    const rivales = await getRivales();
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -127,42 +121,11 @@ export default async function NuevoTorneoPage({
                     </Field>
                 </Seccion>
 
-                <Seccion titulo="Equipos participantes">
-                    {rivales.length === 0 ? (
-                        <p className="text-sm text-neutral-500 md:col-span-2">
-                            Sin rivales cargados todavía.
-                        </p>
-                    ) : (
-                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto rounded-lg border border-neutral-800 p-3 bg-neutral-950">
-                            {rivales.map((r) => (
-                                <label
-                                    key={r.id}
-                                    className="flex items-center gap-2 text-sm px-2 py-1.5 rounded-md hover:bg-neutral-900"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="participantes"
-                                        value={r.id}
-                                    />
-                                    <span className="truncate">{r.nombre}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </Seccion>
-
-                <Seccion titulo="Plantilla del club en este torneo">
-                    <p className="md:col-span-2 text-xs text-neutral-500 -mt-2">
-                        Elegí qué jugadores participan en este torneo. Si ya tenías otro
-                        torneo con plantel similar (ej. otro de Fut7), podés copiarla en
-                        vez de recapturar uno por uno.
-                    </p>
-                    <PlantillaTorneo
-                        jugadores={jugadoresActivos}
-                        torneosExistentes={torneosExistentes}
-                        seleccionInicial={[]}
-                    />
-                </Seccion>
+                <p className="text-xs text-neutral-500 bg-neutral-900/50 border border-neutral-800 rounded-lg px-4 py-3">
+                    La plantilla de jugadores y los equipos participantes se cargan
+                    después de crear el torneo, desde{" "}
+                    <span className="text-neutral-300">Plantillas</span> en el menú.
+                </p>
 
                 <Seccion titulo="Resultado del club (opcional)">
                     <Field label="Posición final">

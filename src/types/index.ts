@@ -85,6 +85,7 @@ export interface Torneo {
   organizador?: string;
   participantes: string[];   // ids de Rival
   jugadoresIds: string[];    // plantilla del club para este torneo (ids de Jugador)
+  dorsalesPorJugador: Record<string, number>; // dorsal específico de este torneo (si falta, usar el dorsal global)
   posicionFinal?: number;
   faseAlcanzada?: string;
   resumen?: string;

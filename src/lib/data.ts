@@ -120,7 +120,7 @@ type TorneoRow = {
   fase_alcanzada: string | null;
   resumen: string | null;
   torneo_participantes?: { rival_id: string }[];
-  torneo_jugadores?: { jugador_id: string }[];
+  torneo_jugadores?: { jugador_id: string; dorsal: number | null }[];
 };
 
 type PartidoRow = {
@@ -556,6 +556,11 @@ function torneoFromRow(row: TorneoRow): Torneo {
     organizador: optional(row.organizador),
     participantes: (row.torneo_participantes ?? []).map((item) => item.rival_id),
     jugadoresIds: (row.torneo_jugadores ?? []).map((item) => item.jugador_id),
+    dorsalesPorJugador: Object.fromEntries(
+      (row.torneo_jugadores ?? [])
+        .filter((item) => item.dorsal !== null)
+        .map((item) => [item.jugador_id, item.dorsal as number]),
+    ),
     posicionFinal: optional(row.posicion_final),
     faseAlcanzada: optional(row.fase_alcanzada),
     resumen: optional(row.resumen),
@@ -566,7 +571,7 @@ export async function getTorneos(): Promise<Torneo[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id, dorsal)")
     .order("temporada", { ascending: false });
   if (error) fail("leer torneos", error);
   return (data as TorneoRow[]).map(torneoFromRow);
@@ -576,7 +581,7 @@ export async function getTorneo(id: string): Promise<Torneo | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("torneos")
-    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id)")
+    .select("*, torneo_participantes(rival_id), torneo_jugadores(jugador_id, dorsal)")
     .eq("id", id)
     .maybeSingle();
   if (error) fail("leer torneo", error);
@@ -625,6 +630,7 @@ export async function upsertTorneo(torneo: Torneo): Promise<Torneo> {
     torneo.jugadoresIds.map((jugadorId) => ({
       torneo_id: torneo.id,
       jugador_id: jugadorId,
+      dorsal: torneo.dorsalesPorJugador[jugadorId] ?? null,
     })),
   );
   return torneo;

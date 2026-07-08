@@ -182,6 +182,7 @@ export default async function FichaJugadorPage({
               <thead className="bg-neutral-900 text-neutral-400 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-2">Torneo</th>
+                  <th className="text-right px-3 py-2">Dorsal</th>
                   <th className="text-right px-3 py-2">PJ</th>
                   <th className="text-right px-3 py-2">G</th>
                   <th className="text-right px-3 py-2">A</th>
@@ -197,6 +198,9 @@ export default async function FichaJugadorPage({
                       <p className="text-xs text-neutral-500">
                         {torneo.temporada} · {torneo.categoria}
                       </p>
+                    </td>
+                    <td className="text-right px-3 py-2 font-mono text-neutral-400">
+                      {torneo.dorsalesPorJugador[jugador.id] ?? jugador.dorsal}
                     </td>
                     <td className="text-right px-3 py-2">
                       {stats.partidosJugados}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getJugadores } from "@/lib/data";
+import { getJugadores, getTorneos } from "@/lib/data";
 import type { Jugador, Posicion } from "@/types";
 
 const POSICION_LABEL: Record<Posicion, string> = {
@@ -17,9 +17,13 @@ const POSICION_COLOR: Record<Posicion, string> = {
     DEL: "bg-orange-500/10 text-orange-400 border-orange-500/30",
 };
 
-type Filtro = "activos" | "pasaron" | "leyendas" | "todos";
+type Filtro = "activos" | "pasaron" | "leyendas" | "todos" | "multitorneo";
 
-function aplicarFiltro(lista: Jugador[], filtro: Filtro): Jugador[] {
+function aplicarFiltro(
+    lista: Jugador[],
+    filtro: Filtro,
+    torneosPorJugador: Map<string, string[]>,
+): Jugador[] {
     switch (filtro) {
         case "activos":
             return lista.filter((j) => j.activo);
@@ -27,6 +31,8 @@ function aplicarFiltro(lista: Jugador[], filtro: Filtro): Jugador[] {
             return lista.filter((j) => !j.activo && !j.esLeyenda);
         case "leyendas":
             return lista.filter((j) => j.esLeyenda);
+        case "multitorneo":
+            return lista.filter((j) => (torneosPorJugador.get(j.id)?.length ?? 0) >= 2);
         default:
             return lista;
     }
@@ -35,24 +41,45 @@ function aplicarFiltro(lista: Jugador[], filtro: Filtro): Jugador[] {
 export default async function JugadoresPage({
     searchParams,
 }: {
-    searchParams: Promise<{ filtro?: string }>;
+    searchParams: Promise<{ filtro?: string; q?: string }>;
 }) {
-    const { filtro: filtroRaw } = await searchParams;
+    const { filtro: filtroRaw, q: qRaw } = await searchParams;
     const filtro: Filtro =
         filtroRaw === "pasaron" ||
             filtroRaw === "leyendas" ||
-            filtroRaw === "todos"
+            filtroRaw === "todos" ||
+            filtroRaw === "multitorneo"
             ? filtroRaw
             : "activos";
+    const q = (qRaw ?? "").trim().toLowerCase();
 
-    const todos = await getJugadores();
-    const lista = aplicarFiltro(todos, filtro);
+    const [todos, torneos] = await Promise.all([getJugadores(), getTorneos()]);
+
+    const torneosPorJugador = new Map<string, string[]>();
+    for (const t of torneos) {
+        for (const jid of t.jugadoresIds) {
+            const lista = torneosPorJugador.get(jid) ?? [];
+            lista.push(t.nombre);
+            torneosPorJugador.set(jid, lista);
+        }
+    }
+
+    const porFiltro = aplicarFiltro(todos, filtro, torneosPorJugador);
+    const lista = q
+        ? porFiltro.filter((j) =>
+              `${j.nombre} ${j.apellido} ${j.apodo ?? ""} ${j.dorsal}`
+                  .toLowerCase()
+                  .includes(q),
+          )
+        : porFiltro;
 
     const contadores = {
         activos: todos.filter((j) => j.activo).length,
         pasaron: todos.filter((j) => !j.activo && !j.esLeyenda).length,
         leyendas: todos.filter((j) => j.esLeyenda).length,
         todos: todos.length,
+        multitorneo: todos.filter((j) => (torneosPorJugador.get(j.id)?.length ?? 0) >= 2)
+            .length,
     };
 
     return (
@@ -80,28 +107,51 @@ export default async function JugadoresPage({
                 </div>
             </header>
 
-            <nav className="flex gap-1 border-b border-neutral-800">
-                <Tab activo={filtro === "activos"} href="/admin/jugadores?filtro=activos">
-                    Activos ({contadores.activos})
-                </Tab>
-                <Tab activo={filtro === "pasaron"} href="/admin/jugadores?filtro=pasaron">
-                    Pasaron por aquí ({contadores.pasaron})
-                </Tab>
-                <Tab activo={filtro === "leyendas"} href="/admin/jugadores?filtro=leyendas">
-                    Leyendas ({contadores.leyendas})
-                </Tab>
-                <Tab activo={filtro === "todos"} href="/admin/jugadores?filtro=todos">
-                    Todos
-                </Tab>
-            </nav>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+                <nav className="flex gap-1 border-b border-neutral-800">
+                    <Tab activo={filtro === "activos"} href={`/admin/jugadores?filtro=activos${q ? `&q=${q}` : ""}`}>
+                        Activos ({contadores.activos})
+                    </Tab>
+                    <Tab activo={filtro === "pasaron"} href={`/admin/jugadores?filtro=pasaron${q ? `&q=${q}` : ""}`}>
+                        Pasaron por aquí ({contadores.pasaron})
+                    </Tab>
+                    <Tab activo={filtro === "leyendas"} href={`/admin/jugadores?filtro=leyendas${q ? `&q=${q}` : ""}`}>
+                        Leyendas ({contadores.leyendas})
+                    </Tab>
+                    <Tab activo={filtro === "multitorneo"} href={`/admin/jugadores?filtro=multitorneo${q ? `&q=${q}` : ""}`}>
+                        En varios torneos ({contadores.multitorneo})
+                    </Tab>
+                    <Tab activo={filtro === "todos"} href={`/admin/jugadores?filtro=todos${q ? `&q=${q}` : ""}`}>
+                        Todos
+                    </Tab>
+                </nav>
+
+                <form action="/admin/jugadores" method="get" className="flex items-center gap-2">
+                    <input type="hidden" name="filtro" value={filtro} />
+                    <input
+                        type="search"
+                        name="q"
+                        defaultValue={q}
+                        placeholder="Buscar por nombre o dorsal..."
+                        className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm w-64"
+                    />
+                </form>
+            </div>
 
             {lista.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-800 p-12 text-center">
                     <p className="text-neutral-400">
-                        {filtro === "activos" && "No hay jugadores activos."}
-                        {filtro === "pasaron" && "Aún no hay ex-jugadores."}
-                        {filtro === "leyendas" && "Todavía no hay leyendas marcadas."}
-                        {filtro === "todos" && "El plantel está vacío."}
+                        {q
+                            ? "Ningún jugador coincide con la búsqueda."
+                            : filtro === "activos"
+                                ? "No hay jugadores activos."
+                                : filtro === "pasaron"
+                                    ? "Aún no hay ex-jugadores."
+                                    : filtro === "leyendas"
+                                        ? "Todavía no hay leyendas marcadas."
+                                        : filtro === "multitorneo"
+                                            ? "Nadie está en 2 o más torneos todavía."
+                                            : "El plantel está vacío."}
                     </p>
                     {filtro === "activos" && (
                         <Link
@@ -121,6 +171,7 @@ export default async function JugadoresPage({
                                 <th className="text-left px-4 py-3">Jugador</th>
                                 <th className="text-left px-4 py-3">Posición</th>
                                 <th className="text-left px-4 py-3">Estado</th>
+                                <th className="text-left px-4 py-3">Torneos</th>
                                 <th className="text-right px-4 py-3"></th>
                             </tr>
                         </thead>
@@ -200,6 +251,26 @@ export default async function JugadoresPage({
                                                 Inactivo
                                             </span>
                                         )}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {(() => {
+                                            const nombresTorneos = torneosPorJugador.get(j.id) ?? [];
+                                            if (nombresTorneos.length === 0) {
+                                                return <span className="text-xs text-neutral-600">—</span>;
+                                            }
+                                            return (
+                                                <span
+                                                    title={nombresTorneos.join(", ")}
+                                                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs border ${nombresTorneos.length >= 2
+                                                        ? "bg-orange-500/10 text-orange-300 border-orange-500/30"
+                                                        : "bg-neutral-800/50 text-neutral-400 border-neutral-800"
+                                                        }`}
+                                                >
+                                                    {nombresTorneos.length}{" "}
+                                                    {nombresTorneos.length === 1 ? "torneo" : "torneos"}
+                                                </span>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <div className="flex justify-end gap-3">

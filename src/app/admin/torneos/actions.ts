@@ -50,7 +50,15 @@ function readEstado(v: FormDataEntryValue | null): EstadoTorneo | null {
         : null;
 }
 
-function construirTorneo(formData: FormData, id: string): Torneo | null {
+// La plantilla (jugadoresIds, dorsalesPorJugador) y los equipos participantes
+// ya no se editan desde este form — viven en /admin/plantillas. Por eso
+// construirTorneo no los toca: cada acción decide qué hacer con esos 3 campos.
+type TorneoSinPlantilla = Omit<
+    Torneo,
+    "participantes" | "jugadoresIds" | "dorsalesPorJugador"
+>;
+
+function construirTorneo(formData: FormData, id: string): TorneoSinPlantilla | null {
     const nombre = readStr(formData, "nombre");
     const temporada = readStr(formData, "temporada");
     const categoria = readCategoria(formData.get("categoria"));
@@ -58,14 +66,6 @@ function construirTorneo(formData: FormData, id: string): Torneo | null {
     const estado = readEstado(formData.get("estado"));
 
     if (!nombre || !temporada || !categoria || !tipo || !estado) return null;
-
-    const participantes = formData
-        .getAll("participantes")
-        .filter((v): v is string => typeof v === "string");
-
-    const jugadoresIds = formData
-        .getAll("jugadoresIds")
-        .filter((v): v is string => typeof v === "string");
 
     return {
         id,
@@ -78,8 +78,6 @@ function construirTorneo(formData: FormData, id: string): Torneo | null {
         fechaFin: readStr(formData, "fechaFin"),
         sede: readStr(formData, "sede"),
         organizador: readStr(formData, "organizador"),
-        participantes,
-        jugadoresIds,
         posicionFinal: readInt(formData.get("posicionFinal")),
         faseAlcanzada: readStr(formData, "faseAlcanzada"),
         resumen: readStr(formData, "resumen"),
@@ -90,12 +88,20 @@ function construirTorneo(formData: FormData, id: string): Torneo | null {
 export async function crearTorneo(formData: FormData) {
     await requireAuth();
     const id = generateId("t");
-    const torneo = construirTorneo(formData, id);
-    if (!torneo) redirect("/admin/torneos/nuevo?error=campos");
+    const base = construirTorneo(formData, id);
+    if (!base) redirect("/admin/torneos/nuevo?error=campos");
+
+    const torneo: Torneo = {
+        ...base,
+        participantes: [],
+        jugadoresIds: [],
+        dorsalesPorJugador: {},
+    };
 
     await upsertTorneo(torneo);
     revalidatePath("/admin/torneos");
-    redirect("/admin/torneos");
+    revalidatePath("/admin/plantillas");
+    redirect(`/admin/plantillas/${id}`);
 }
 
 // -------- editarTorneo --------
@@ -106,8 +112,17 @@ export async function editarTorneo(formData: FormData) {
     const actual = await getTorneo(id);
     if (!actual) redirect("/admin/torneos");
 
-    const torneo = construirTorneo(formData, id);
-    if (!torneo) redirect(`/admin/torneos/${id}/editar?error=campos`);
+    const base = construirTorneo(formData, id);
+    if (!base) redirect(`/admin/torneos/${id}/editar?error=campos`);
+
+    // Preservamos la plantilla y los equipos participantes tal cual estaban:
+    // este form solo edita los datos básicos del torneo.
+    const torneo: Torneo = {
+        ...base,
+        participantes: actual.participantes,
+        jugadoresIds: actual.jugadoresIds,
+        dorsalesPorJugador: actual.dorsalesPorJugador,
+    };
 
     await upsertTorneo(torneo);
     revalidatePath("/admin/torneos");

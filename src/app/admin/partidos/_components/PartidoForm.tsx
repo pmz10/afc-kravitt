@@ -7,6 +7,7 @@ import type {
 } from "@/types";
 import { EventosEditor } from "./EventosEditor";
 import { CargarPlantillaBoton } from "./CargarPlantillaBoton";
+import { TorneoRivalSelect } from "./TorneoRivalSelect";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -39,40 +40,12 @@ export function PartidoForm({
 
             {/* ───── Datos básicos ───── */}
             <Seccion titulo="Datos del partido">
-                <Field label="Torneo *">
-                    <select
-                        name="torneoId"
-                        required
-                        defaultValue={partido?.torneoId ?? ""}
-                        className={inputCls}
-                    >
-                        <option value="" disabled>
-                            Elegí torneo
-                        </option>
-                        {torneos.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.nombre} ({t.temporada})
-                            </option>
-                        ))}
-                    </select>
-                </Field>
-                <Field label="Rival *">
-                    <select
-                        name="rivalId"
-                        required
-                        defaultValue={partido?.rivalId ?? ""}
-                        className={inputCls}
-                    >
-                        <option value="" disabled>
-                            Elegí rival
-                        </option>
-                        {rivales.map((r) => (
-                            <option key={r.id} value={r.id}>
-                                {r.nombre}
-                            </option>
-                        ))}
-                    </select>
-                </Field>
+                <TorneoRivalSelect
+                    torneos={torneos}
+                    rivales={rivales}
+                    defaultTorneoId={partido?.torneoId ?? ""}
+                    defaultRivalId={partido?.rivalId ?? ""}
+                />
                 <Field label="Jornada">
                     <input
                         type="number"

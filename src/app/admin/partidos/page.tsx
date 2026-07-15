@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPartidos, getRivales, getTorneos } from "@/lib/data";
+import { ZONA_CLUB } from "@/lib/utils";
 import type { ResultadoPartido } from "@/types";
 
 const RESULTADO_LABEL: Record<ResultadoPartido, string> = {
@@ -95,6 +96,7 @@ export default async function PartidosPage({
                         const fechaCorta = new Date(p.fecha).toLocaleString("es-MX", {
                             dateStyle: "medium",
                             timeStyle: "short",
+                            timeZone: ZONA_CLUB,
                         });
                         return (
                             <Link

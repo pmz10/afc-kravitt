@@ -9,6 +9,7 @@ import {
 } from "@/lib/data";
 import { getStatsVsRival, getTopGoleadoresDelRival } from "@/lib/stats";
 import { agregarJugadorRival, eliminarJugadorRival } from "../actions";
+import { ZONA_CLUB } from "@/lib/utils";
 import type { ResultadoPartido } from "@/types";
 
 const inputCls =
@@ -151,6 +152,7 @@ export default async function FichaRivalPage({
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
+                timeZone: ZONA_CLUB,
               });
               const marcador =
                 p.golesFavor !== undefined && p.golesContra !== undefined

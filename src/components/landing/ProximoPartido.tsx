@@ -7,6 +7,7 @@ import {
   getTorneos,
   getUltimosResultados,
 } from "@/lib/data";
+import { ZONA_CLUB } from "@/lib/utils";
 
 import { ProximoPartidoScroll } from "@/components/landing/ProximoPartidoScroll";
 
@@ -18,6 +19,7 @@ function formatFecha(iso: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: ZONA_CLUB,
   });
 }
 
@@ -27,6 +29,7 @@ function formatHora(iso: string) {
   return date.toLocaleTimeString("es-MX", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: ZONA_CLUB,
   });
 }
 

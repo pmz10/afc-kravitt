@@ -43,3 +43,26 @@ export async function logout(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
 }
+
+// No revela si el correo existe o no (evita filtrar qué emails son admin).
+export async function solicitarRecuperacion(
+  email: string,
+  redirectTo: string,
+): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+}
+
+// Intercambia el código del link de recuperación por una sesión (setea cookies).
+export async function confirmarRecuperacion(code: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  return !error;
+}
+
+// Requiere una sesión de recuperación ya activa (ver confirmarRecuperacion).
+export async function actualizarContrasena(password: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  return !error;
+}

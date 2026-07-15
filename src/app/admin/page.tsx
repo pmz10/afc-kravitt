@@ -8,6 +8,7 @@ import {
     getTorneos,
 } from "@/lib/data";
 import { getStatsJugador } from "@/lib/stats";
+import { ZONA_CLUB } from "@/lib/utils";
 import type { Partido, ResultadoPartido } from "@/types";
 
 const RESULTADO_BREVE: Record<ResultadoPartido, string> = {
@@ -292,6 +293,7 @@ export default async function DashboardPage() {
                         ).toLocaleString("es-MX", {
                             dateStyle: "full",
                             timeStyle: "short",
+                            timeZone: ZONA_CLUB,
                         });
 
                         return (
@@ -379,6 +381,7 @@ export default async function DashboardPage() {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
+                                timeZone: ZONA_CLUB,
                             });
 
                             const marcador =

@@ -8,7 +8,9 @@ import type {
 import { EventosEditor } from "./EventosEditor";
 import { TorneoRivalSelect } from "./TorneoRivalSelect";
 import { ConvocatoriaSelector } from "./ConvocatoriaSelector";
+import { MvpSelector } from "./MvpSelector";
 import { TorneoProvider } from "./TorneoContext";
+import { isoALocalClub } from "@/lib/utils";
 
 const inputCls =
     "w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 focus:border-orange-500 focus:outline-none text-sm";
@@ -62,7 +64,7 @@ export function PartidoForm({
                         type="datetime-local"
                         name="fecha"
                         required
-                        defaultValue={partido?.fecha?.slice(0, 16) ?? ""}
+                        defaultValue={partido?.fecha ? isoALocalClub(partido.fecha) : ""}
                         className={inputCls}
                     />
                 </Field>
@@ -154,25 +156,18 @@ export function PartidoForm({
                 />
             </Seccion>
 
-            </TorneoProvider>
-
             {/* ───── MVP ───── */}
             <Seccion titulo="MVP del partido (designación del admin)">
                 <Field label="MVP" full>
-                    <select
-                        name="mvpId"
-                        defaultValue={partido?.mvpId ?? ""}
-                        className={inputCls}
-                    >
-                        <option value="">— sin elegir —</option>
-                        {jugadoresActivos.map((j) => (
-                            <option key={j.id} value={j.id}>
-                                #{j.dorsal} {j.nombre} {j.apellido}
-                            </option>
-                        ))}
-                    </select>
+                    <MvpSelector
+                        jugadores={jugadoresActivos}
+                        torneos={torneos}
+                        defaultMvpId={partido?.mvpId ?? ""}
+                    />
                 </Field>
             </Seccion>
+
+            </TorneoProvider>
 
             {/* ───── Eventos ───── */}
             <Seccion titulo="Eventos del partido">

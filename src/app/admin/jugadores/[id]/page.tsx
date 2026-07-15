@@ -19,6 +19,7 @@ import {
   eliminarCarryOverTorneo,
   eliminarHito,
 } from "../actions";
+import { ZONA_CLUB } from "@/lib/utils";
 import type { Posicion, TipoEventoPropio, TipoHito } from "@/types";
 
 const POSICION_LABEL: Record<Posicion, string> = {
@@ -247,6 +248,7 @@ export default async function FichaJugadorPage({
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
+                    timeZone: ZONA_CLUB,
                   });
                   const marcador =
                     p.golesFavor !== undefined && p.golesContra !== undefined

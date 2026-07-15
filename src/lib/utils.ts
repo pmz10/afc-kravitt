@@ -38,6 +38,39 @@ export function toISODate(input: string | Date): string {
     return d.toISOString().slice(0, 10);
 }
 
+// Zona horaria del club (Ciudad de México, UTC-6 fijo desde que el país
+// eliminó el horario de verano en la mayoría del territorio en 2022).
+// Los <input type="datetime-local"> no incluyen zona horaria — sin esto, el
+// valor se guarda o se muestra asumiendo la zona del servidor (UTC en
+// Vercel), lo que desfasa la hora guardada varias horas.
+export const ZONA_CLUB = "America/Mexico_City";
+const OFFSET_CLUB = "-06:00";
+
+// Convierte el valor de un <input type="datetime-local"> (hora local del
+// club, sin zona) a un ISO UTC inequívoco, listo para guardar.
+export function localClubAIso(datetimeLocal: string): string {
+    return new Date(`${datetimeLocal}:00${OFFSET_CLUB}`).toISOString();
+}
+
+// Convierte un ISO ya guardado (UTC) al formato que espera un
+// <input type="datetime-local">, en hora del club.
+export function isoALocalClub(iso: string): string {
+    const d = new Date(iso);
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: ZONA_CLUB,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+    });
+    const partes = Object.fromEntries(
+        fmt.formatToParts(d).map((p) => [p.type, p.value]),
+    );
+    return `${partes.year}-${partes.month}-${partes.day}T${partes.hour}:${partes.minute}`;
+}
+
 // ¿La fecha ISO está en el rango [desde, hasta]? Inclusive en ambos extremos.
 // Si desde/hasta son undefined, no se aplica esa frontera.
 export function dentroDeRango(

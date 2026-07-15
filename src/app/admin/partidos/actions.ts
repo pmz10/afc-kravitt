@@ -8,7 +8,7 @@ import {
     upsertPartido,
 } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
-import { generateId } from "@/lib/utils";
+import { generateId, localClubAIso } from "@/lib/utils";
 import type {
     EventoPartido,
     Partido,
@@ -156,7 +156,7 @@ function construirPartido(formData: FormData, id: string): Partido | null {
         torneoId,
         rivalId,
         jornada: readInt(formData.get("jornada")),
-        fecha,
+        fecha: localClubAIso(fecha),
         sede: readStr(formData, "sede"),
         esLocal: formData.get("esLocal") === "on",
         resultado: readResultado(formData.get("resultado")),
